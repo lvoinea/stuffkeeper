@@ -1,7 +1,7 @@
 import datetime
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+from . import models, schemas, security
 
 class DbException(Exception):
     pass
@@ -51,7 +51,7 @@ def create_user(db: Session, user: schemas.UserCreate):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user:
         raise DbException('User already registered.')
-    hashed_password = user.password + "notreallyhashed"
+    hashed_password = security.get_password_hash(user.password)
     db_user = models.User(
         email=user.email,
         hashed_password=hashed_password,

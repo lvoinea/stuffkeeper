@@ -66,7 +66,6 @@ class User(UserBase):
 #---------------------------------- Item
 
 class ItemBase(BaseModel):
-    name: str
     description: Union[str, None] = None
     code: Union[str, None] = None
 
@@ -108,3 +107,10 @@ class ItemBrief(BaseModel):
 
     class Config:
         orm_mode = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Union[str, None] = None

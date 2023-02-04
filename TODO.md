@@ -2,7 +2,6 @@
 
 ## Yes
 
-- Add extra item fields
 - Token based authentication
 - Unit tests
 
@@ -13,3 +12,5 @@ This should remove the tag/location from all associated
 items before removing the object from the DB.
 
 ## Done
+
+- Add extra item fields
