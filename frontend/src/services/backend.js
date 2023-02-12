@@ -1,6 +1,6 @@
 //------------------------------------------- Login
 
-export async function loginUser({username, password, grant_type, scope, client_id, client_secret}) {
+export function loginUser({username, password, grant_type, scope, client_id, client_secret}) {
  return fetch('http://localhost:8000/token', {
    method: 'POST',
    mode: 'cors',
@@ -18,3 +18,28 @@ export async function loginUser({username, password, grant_type, scope, client_i
  .then(response => response.json())
 }
 
+//------------------------------------------- Items
+
+export function getItems() {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+        let items = [
+          {
+            "id": 1,
+            "name": "ciocan",
+            "description": null,
+            "photo_small": null,
+            "quantity": 1,
+            "expiration_date": null,
+            "is_active": true,
+            "locations": [
+              {
+                "name": "location A"
+              }
+            ]
+          }
+        ]
+        resolve(items)
+    }, 10)
+  })
+}
