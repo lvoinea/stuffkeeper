@@ -21,8 +21,8 @@ def get_password_hash(password):
 def decode_token(token):
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError:
-        raise  SecurityException('Invalid token')
+    except JWTError as e:
+        raise  SecurityException('Invalid token: {}'.format(e))
 
 def authenticate_user(user_db, password: str):
     if not user_db:

@@ -1,3 +1,6 @@
 .idea
 HOWTO.md
 /backend/backend/.env
+/frontend/.env
+/tmp/
+/backend/local/

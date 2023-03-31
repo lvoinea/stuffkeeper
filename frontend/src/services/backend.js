@@ -1,7 +1,16 @@
+
+const backendAddress = '192.168.68.133:8000';
+
+//------------------------------------------- Exceptions
+function ApplicationException({code, message}) {
+  this.message = message;
+  this.code = code;
+}
+
 //------------------------------------------- Login
 
 export function loginUser({username, password, grant_type, scope, client_id, client_secret}) {
- return fetch('http://localhost:8000/token', {
+ return fetch(`http://${backendAddress}/token`, {
    method: 'POST',
    mode: 'cors',
    headers: {
@@ -20,26 +29,59 @@ export function loginUser({username, password, grant_type, scope, client_id, cli
 
 //------------------------------------------- Items
 
-export function getItems() {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-        let items = [
-          {
-            "id": 1,
-            "name": "ciocan",
-            "description": null,
-            "photo_small": null,
-            "quantity": 1,
-            "expiration_date": null,
-            "is_active": true,
-            "locations": [
-              {
-                "name": "location A"
-              }
-            ]
-          }
-        ]
-        resolve(items)
-    }, 10)
+export function getItems({token}) {
+  if (token) {
+    return fetch(`http://${backendAddress}/users/me/items/`, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(response => {
+        if(response.ok) {
+            return response.json()
+        }
+        return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
+      })
+  }
+  else {
+    return [];
+  }
+}
+
+export function loadItem({token, id}) {
+  return fetch(`http://${backendAddress}/users/me/items/${id}`, {
+    method: 'GET',
+    mode: 'cors',
+    headers: {
+     'Content-Type': 'application/json',
+     'Authorization': `Bearer ${token}`
+    }
+  })
+  .then(response => {
+    if(response.ok) {
+        return response.json()
+    }
+    return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
+  })
+}
+
+export function saveItem({token, item, id}) {
+  return fetch(`http://${backendAddress}/users/me/items/${id}`, {
+    method: 'POST',
+    mode: 'cors',
+    headers: {
+     'Content-Type': 'application/json',
+     'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(item)
+  })
+  .then(response => {
+    if(response.ok) {
+        return response.json()
+    }
+    return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
   })
 }

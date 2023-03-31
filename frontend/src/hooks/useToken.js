@@ -1,22 +1,15 @@
 import { useState } from 'react';
+import { getToken, saveToken } from '../services/token';
 
 export default function useToken() {
 
-  const getToken = () => {
-    const tokenString = sessionStorage.getItem('token');
-    const userToken = JSON.parse(tokenString);
-    return userToken?.access_token
-  };
-
   const [token, setToken] = useState(getToken());
 
-  const saveToken = userToken => {
-    sessionStorage.setItem('token', JSON.stringify(userToken));
-    setToken(userToken.access_token);
-  };
-
   return {
-    setToken: saveToken,
+    setToken: userToken => {
+                    saveToken(userToken);
+                    setToken(userToken.access_token);
+              },
     token
   }
 }

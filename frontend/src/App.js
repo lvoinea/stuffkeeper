@@ -1,33 +1,65 @@
-import React from 'react';
-import { BrowserRouter, Route, Routes, Redirect } from 'react-router-dom';
+import React, {useEffect} from 'react';
+import { useDispatch } from 'react-redux'
+import { createBrowserRouter, RouterProvider} from "react-router-dom";
 
-import './App.css';
-import Login from './components/Login';
-import ItemsView from './views/ItemsView';
+import Root from './components/Root';
+import SignOut from './components/SignOut';
+import ErrorPage from "./components/ErrorPage";
+import ItemsView from './views/Items';
+import ItemView from './views/ItemView';
+import ItemEdit from './views/ItemEdit';
 import StatsView from './views/StatsView';
-import NotFoundView from './views/NotFoundView';
-import useToken from './hooks/useToken';
+
+import {setToken} from './services/store';
+import {getToken} from './services/token';
 
 function App() {
-  const { token, setToken } = useToken();
 
-  if(!token) {
-    return <Login setToken={setToken} />
-  }
+  const dispatch = useDispatch();
 
-  return (
-    <div className='wrapper'>
-      <h1>Application</h1>
-      <BrowserRouter>
-        <Routes>
-          <Route index element={<ItemsView />} />
-          <Route path="/items" element={<ItemsView />} />
-          <Route path="/stats" element={<StatsView />} />
-          <Route path="*" element={<NotFoundView />} />
-        </Routes>
-      </BrowserRouter>
-    </div>
-  );
+  useEffect(() => {
+    const stored_token = getToken();
+    dispatch(setToken(stored_token));
+  },[dispatch])
+
+
+  const router = createBrowserRouter([
+  {
+    path: "/logout",
+    element: <SignOut />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/",
+    element: <Root />,
+    errorElement: <ErrorPage />,
+    children: [
+      {
+        errorElement: <ErrorPage />,
+        children: [
+          {
+            index: true,
+            element: <ItemsView />,
+          },
+          {
+            path: "/items/:id",
+            element: <ItemView />,
+          },
+          {
+            path: "/items/:id/edit",
+            element: <ItemEdit />,
+          },
+          {
+            path: "/stats",
+            element: <StatsView />,
+          }
+        ]
+      }
+    ]
+  }]);
+
+  return <RouterProvider router={router} />
+
 }
 
 export default App;
