@@ -68,7 +68,8 @@ export default function Root() {
   const token = useSelector((state) => state.global.token);
 
   const matchRoot = useMatch('/');
-  const matchItem = useMatch('/items/:item');
+  const matchItemView = useMatch('/items/:item');
+  const matchItemEdit = useMatch('/items/:item/edit');
 
   const isMenuOpen = Boolean(anchorEl);
   const handleMenuClose = () => {
@@ -154,9 +155,9 @@ export default function Root() {
           )}
 
           {/* ---------------------------------------------- Item name --------- */}
-          { matchItem && (
+          { (matchItemView || matchItemEdit) && (
             <Typography sx={{ display: 'inline' }} component="span" variant="h6">
-                {currentItem}
+                {currentItem.name}
             </Typography>
           )}
 
@@ -179,7 +180,7 @@ export default function Root() {
           )}
 
           {/* ---------------------------------------------- Close ------------- */}
-          { matchItem && (
+          { (matchItemView || matchItemEdit) && (
             <Box sx={{ display: { xs: 'flex', md: 'flex' } }}>
                 <IconButton
                   size="large"

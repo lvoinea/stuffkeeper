@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
-  selectedItem: null,
+  selectedItem: {name: null, id: null},
   token: null,
   itemsY: 0
 }

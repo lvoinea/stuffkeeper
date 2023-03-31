@@ -2,7 +2,16 @@
 
 ## Yes
 
-- Token based authentication
+- Add delete item to view panel
+- Add archive view
+- Add edit for tags and locations
+- Move logout to drawer
+- Add image editing
+- Add searching
+- Add multi edit (delete/archive)
+- Add sort options
+- Add bookmark
+- Add notifications for expiration + clear notification
 - Unit tests
 
 ## Maybe
@@ -13,4 +22,5 @@ items before removing the object from the DB.
 
 ## Done
 
+- Token based authentication
 - Add extra item fields

@@ -24,12 +24,13 @@ export default function Items() {
 
   const token = useSelector((state) => state.global.token);
   const scrollPosition = useSelector((state) => state.global.itemsY);
+  const currentItem = useSelector((state) => state.global.selectedItem);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const handleSelectItem = (item) => () => {
-    dispatch(setSelectedItem(item.name));
+    dispatch(setSelectedItem({name: item.name, id: item.id}));
     dispatch(setYItems(window.pageYOffset));
     navigate(`/items/${item.id}`);
   };
@@ -54,6 +55,7 @@ export default function Items() {
           <ListItem disablePadding>
             <ListItemButton role={undefined} onClick={handleSelectItem(item)}
                     alignItems="flex-start"
+                    selected={item.id === currentItem.id}
                     dense>
             <div>
                 <img style={{borderRadius: '1rem',

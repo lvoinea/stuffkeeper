@@ -13,6 +13,7 @@ import TextField from '@mui/material/TextField';
 
 import SaveIcon from '@mui/icons-material/Save';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 
 const formReducer = (state, action) => {
@@ -81,8 +82,13 @@ export default function ItemEditView() {
   const handleSave = async(event) => {
   }
 
+  const handleCancel = async(event) => {
+    navigate(-1);
+  }
+
   const actions = [
       { icon: <SaveIcon />, name: 'Save', action: handleSave , type: 'submit'},
+      { icon: <CancelIcon />, name: 'Cancel', action: handleCancel , type: 'button'},
    ];
 
   return(
