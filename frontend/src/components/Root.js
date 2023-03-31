@@ -1,11 +1,18 @@
 import React from 'react';
 import { useSelector } from 'react-redux'
-import { Outlet, useNavigate, useMatch, ScrollRestoration } from "react-router-dom";
+import { Outlet, useNavigate, useMatch } from "react-router-dom";
 
 import { styled, alpha } from '@mui/material/styles';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
+import List from '@mui/material/List';
+import Divider from '@mui/material/Divider';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 import Toolbar from '@mui/material/Toolbar';
+import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import Typography from '@mui/material/Typography';
@@ -63,6 +70,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 export default function Root() {
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [drawer, setDrawer] = React.useState(false);
   const navigate = useNavigate();
   const currentItem = useSelector((state) => state.global.selectedItem);
   const token = useSelector((state) => state.global.token);
@@ -71,10 +79,23 @@ export default function Root() {
   const matchItemView = useMatch('/items/:item');
   const matchItemEdit = useMatch('/items/:item/edit');
 
+  const toggleDrawer = (open) => (event) => {
+    if (
+      event &&
+      event.type === 'keydown' &&
+      (event.key === 'Tab' || event.key === 'Shift')
+    ) {
+      return;
+    }
+
+    setDrawer( open );
+  };
+
   const isMenuOpen = Boolean(anchorEl);
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
+
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -125,13 +146,12 @@ export default function Root() {
 
   return (
     <React.Fragment>
-    <ScrollRestoration/>
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar component="nav">
+      <AppBar component="nav" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
 
           {/* ---------------------------------------------- Drawer ------------ */}
-          <IconButton
+          <IconButton onClick={toggleDrawer(true)}
             size="large"
             edge="start"
             color="inherit"
@@ -202,6 +222,46 @@ export default function Root() {
       {renderMenu}
       <Outlet />
     </Box>
+    <SwipeableDrawer
+            anchor='left'
+            open={drawer}
+            onClose={toggleDrawer(false)}
+            onOpen={toggleDrawer(true)}>
+
+        <Box
+          sx={{ width: 200 }}
+          role="presentation"
+          onClick={toggleDrawer(false)}
+          onKeyDown={toggleDrawer(false)}>
+          <Toolbar />
+          <List>
+
+            <ListItem key='Items' disablePadding>
+                <ListItemButton onClick={() => {navigate('/')}}>
+                  <ListItemIcon>
+                    <SearchIcon />
+                  </ListItemIcon>
+                  <ListItemText primary='Items' />
+                </ListItemButton>
+            </ListItem>
+
+          </List>
+          <Divider />
+          <List>
+
+            <ListItem key='Sign out' disablePadding>
+                <ListItemButton onClick={handleLogout}>
+                  <ListItemIcon>
+                    <AccountCircle />
+                  </ListItemIcon>
+                  <ListItemText primary='Sign out' />
+                </ListItemButton>
+            </ListItem>
+
+          </List>
+        </Box>
+
+    </SwipeableDrawer>
     </React.Fragment>
   );
 }

@@ -2,7 +2,6 @@
 
 ## Yes
 
-- Add delete item to view panel
 - Add archive view
 - Add edit for tags and locations
 - Move logout to drawer
@@ -22,5 +21,6 @@ items before removing the object from the DB.
 
 ## Done
 
+- Add delete item to view panel
 - Token based authentication
 - Add extra item fields

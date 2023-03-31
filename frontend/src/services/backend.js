@@ -85,3 +85,21 @@ export function saveItem({token, item, id}) {
     return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
   })
 }
+
+export function archiveItem({token, id}) {
+  return fetch(`http://${backendAddress}/users/me/items/${id}`, {
+    method: 'POST',
+    mode: 'cors',
+    headers: {
+     'Content-Type': 'application/json',
+     'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({"is_active": false})
+  })
+  .then(response => {
+    if(response.ok) {
+        return response.json()
+    }
+    return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
+  })
+}

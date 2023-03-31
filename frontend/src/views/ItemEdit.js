@@ -13,7 +13,7 @@ import TextField from '@mui/material/TextField';
 
 import SaveIcon from '@mui/icons-material/Save';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import CancelIcon from '@mui/icons-material/Cancel';
+import CloseIcon from '@mui/icons-material/Close';
 
 
 const formReducer = (state, action) => {
@@ -27,11 +27,16 @@ export default function ItemEditView() {
 
   const [item, setItem] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useReducer(formReducer, {});
   const token = useSelector((state) => state.global.token);
   const { id } = useParams();
   const navigate = useNavigate();
   const navigation = useNavigation();
+
+  if (error) {
+    throw error;
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -43,7 +48,7 @@ export default function ItemEditView() {
             }
         }
     };
-    fetchData();
+    fetchData().catch((error) => {setError(error)});
   }, [token, id]);
 
   const handleSubmit = async (event) => {
@@ -88,7 +93,7 @@ export default function ItemEditView() {
 
   const actions = [
       { icon: <SaveIcon />, name: 'Save', action: handleSave , type: 'submit'},
-      { icon: <CancelIcon />, name: 'Cancel', action: handleCancel , type: 'button'},
+      { icon: <CloseIcon />, name: 'Cancel', action: handleCancel , type: 'button'},
    ];
 
   return(
