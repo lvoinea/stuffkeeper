@@ -4,7 +4,9 @@ import { createSlice } from '@reduxjs/toolkit'
 const initialState = {
   selectedItem: {name: null, id: null},
   token: null,
-  itemsY: 0
+  itemsY: 0,
+  tags: [],
+  locations: []
 }
 
 export const globalSlice = createSlice({
@@ -20,10 +22,16 @@ export const globalSlice = createSlice({
     setYItems: (state, action) => {
       state.itemsY = action.payload;
     },
+    setTags: (state, action) => {
+      state.tags = action.payload;
+    },
+    setLocations: (state, action) => {
+      state.locations = action.payload;
+    },
   },
 })
 
-export const { setSelectedItem, setToken, setYItems } = globalSlice.actions
+export const { setSelectedItem, setToken, setYItems, setTags, setLocations } = globalSlice.actions
 
 export const store = configureStore({
   reducer: {

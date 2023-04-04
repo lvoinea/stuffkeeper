@@ -1,5 +1,5 @@
-import React from 'react';
-import { useSelector } from 'react-redux'
+import React, {useEffect} from 'react';
+import { useDispatch, useSelector } from 'react-redux'
 import { Outlet, useNavigate, useMatch } from "react-router-dom";
 
 import { styled, alpha } from '@mui/material/styles';
@@ -27,6 +27,8 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 
 import SignIn from './SignIn';
 
+import {getTags, getLocations} from '../services/backend';
+import {setTags, setLocations} from '../services/store';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -71,13 +73,30 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export default function Root() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [drawer, setDrawer] = React.useState(false);
-  const navigate = useNavigate();
+
   const currentItem = useSelector((state) => state.global.selectedItem);
   const token = useSelector((state) => state.global.token);
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const matchRoot = useMatch('/');
   const matchItemView = useMatch('/items/:item');
   const matchItemEdit = useMatch('/items/:item/edit');
+
+  useEffect(()=>{
+    async function fetchData() {
+        // Tags
+        let tags = await getTags({token});
+        tags = tags.map((tag) => { return { name: tag.name}});
+        dispatch(setTags(tags));
+        // Locations
+        let locations = await getLocations({token});
+        locations = locations.map((location) => { return { name: location.name}});
+        dispatch(setLocations(locations));
+    };
+    fetchData();
+  });
 
   const toggleDrawer = (open) => (event) => {
     if (

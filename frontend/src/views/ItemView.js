@@ -92,6 +92,18 @@ export default function ItemView() {
                 <Chip key={item.id+'_l_' + location.name} label={location.name} variant="outlined"/>
             )}
        </Stack>
+       <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+           Quantity
+       </Typography>
+       <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary">
+           {item.quantity}
+       </Typography>
+       {(item.expiration_date) && (
+            <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                Expiration
+            </Typography>
+       )}
+
 
 
        <SpeedDial

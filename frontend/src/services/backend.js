@@ -103,3 +103,61 @@ export function archiveItem({token, id}) {
     return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
   })
 }
+
+//------------------------------------------- Token
+
+export function getTags({token}) {
+  if (token) {
+    return fetch(`http://${backendAddress}/users/me/tags/`, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(response => {
+        if(response.ok) {
+            return response.json()
+        }
+        return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
+      })
+  }
+  else {
+    return [];
+  }
+}
+
+export function checkTag(name, existingTags ) {
+    const found = existingTags.find(tag => tag.name === name );
+    return found
+}
+
+//------------------------------------------- Locations
+
+export function getLocations({token}) {
+  if (token) {
+    return fetch(`http://${backendAddress}/users/me/locations/`, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(response => {
+        if(response.ok) {
+            return response.json()
+        }
+        return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
+      })
+  }
+  else {
+    return [];
+  }
+}
+
+export function checkLocation(name, existingLocations ) {
+    const found = existingLocations.find(location => location.name === name );
+    return found
+}

@@ -3,8 +3,6 @@
 ## Yes
 
 - Add archive view
-- Add edit for tags and locations
-- Move logout to drawer
 - Add image editing
 - Add searching
 - Add multi edit (delete/archive)
@@ -21,6 +19,8 @@ items before removing the object from the DB.
 
 ## Done
 
+- Add edit for tags and locations
+- Move logout to drawer
 - Add delete item to view panel
 - Token based authentication
 - Add extra item fields
