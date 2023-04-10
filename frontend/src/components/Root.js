@@ -96,7 +96,7 @@ export default function Root() {
         dispatch(setLocations(locations));
     };
     fetchData();
-  });
+  },[token, dispatch]);
 
   const toggleDrawer = (open) => (event) => {
     if (

@@ -2,6 +2,7 @@
 
 ## Yes
 
+- Add network simulation
 - Add archive view
 - Add image editing
 - Add searching

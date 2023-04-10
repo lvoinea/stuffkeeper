@@ -1,13 +1,18 @@
 import React, {useEffect, useReducer, useState} from 'react';
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { useNavigation, useNavigate, useParams } from "react-router-dom";
 
-import _ from "lodash";
+import _ from 'lodash';
+import dayjs from 'dayjs'
 
 import { loadItem, saveItem, checkTag, checkLocation } from '../services/backend';
+import {setTags, setLocations} from '../services/store';
 
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Autocomplete from '@mui/material/Autocomplete';
 import Chip from '@mui/material/Chip';
+import { DateField } from '@mui/x-date-pickers/DateField';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
 import Stack from '@mui/material/Stack';
@@ -15,13 +20,12 @@ import TextField from '@mui/material/TextField';
 
 import SaveIcon from '@mui/icons-material/Save';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import CloseIcon from '@mui/icons-material/Close';
 
 
 const formReducer = (state, action) => {
   return {
    ...state,
-   [action.type]: action.payload
+   [action.field]: action.value
   }
 }
 
@@ -33,6 +37,7 @@ export default function ItemEditView() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useReducer(formReducer, {});
+  const [formError, setFormError] = useReducer(formReducer, {});
   const [inputTag, setInputTag] = useState('');
   const [inputLocation, setInputLocation] = useState('');
 
@@ -43,6 +48,7 @@ export default function ItemEditView() {
   const { id } = useParams();
   const navigate = useNavigate();
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
   if (error) {
     throw error;
@@ -53,8 +59,12 @@ export default function ItemEditView() {
         let l_item = await loadItem({token, id})
         setItem(l_item);
         for (let field in l_item){
-            if (field !== 'id') {
-                setFormData({type: field, payload: l_item[field]});
+            // Need to deserialize expiration date
+            if (field === 'expiration_date') {
+                let value = l_item[field] ? dayjs(l_item[field]) : null;
+                setFormData({field, value});
+            } else if (field !== 'id') {
+                setFormData({field: field, value: l_item[field]});
             }
         }
     };
@@ -71,40 +81,83 @@ export default function ItemEditView() {
     // Otherwise this can become a problem with image data.
     let updatedItem = {}
     for (let field in item){
-        if (!_.isEqual(item[field], formData[field])) {
-            updatedItem[field] = formData[field];
+        let fieldValue = formData[field];
+        // Need to serialize the expiration date
+        if (field === 'expiration_date') {
+            fieldValue = fieldValue?.format('YYYY-MM-DD')
+        }
+        if (!_.isEqual(item[field], fieldValue)) {
+            updatedItem[field] = fieldValue;
             needsSaving = true;
         }
     }
     if (needsSaving){
         setIsSaving(true);
         await saveItem({token, item: updatedItem, id});
-        // TODO: Update global tags and locations if new entries
-        // have been provided.
+        // Update cached tags if new ones are added
+        const newTags = updatedItem.tags?.filter(tag => !checkTag(tag.name, tags));
+        if (newTags) {
+            dispatch(setTags(tags.concat(newTags)));
+        }
+        // Update cached tags if new ones are added
+        const newLocations = updatedItem.locations?.filter(location => !checkLocation(location.name, locations));
+        if (newLocations) {
+            dispatch(setLocations(locations.concat(newLocations)));
+        }
         setIsSaving(false);
         navigate(-1);
     }
   }
 
   const handleChange = event => {
-    const isCheckbox = event.target.type === 'checkbox';
-    setFormData({
-      type: event.target.name,
-      payload: isCheckbox ? event.target.checked : event.target.value,
-    })
+    let field;
+    let value;
+    const isDate = event?.hasOwnProperty('$d');
+    const isCheckbox = event?.target?.type === 'checkbox';
+
+    if (isDate || (event == null)) {
+        field = 'expiration_date';
+        value = event;
+    }
+    else if (isCheckbox) {
+        field = event.target.name;
+        value = event.target.checked;
+    }
+    else {
+        field= event.target.name;
+        value = event.target.value;
+    }
+    setFormData({field,value});
+  }
+
+  const handleDateError = async(event) => {
+    let error = event;
+    if (error === 'minDate') {
+        error = 'Date is too far in the past';
+    } else if (error === 'maxDate') {
+        error = 'Date is too far in the future';
+    }
+    setFormError({field:'expiration_date',value:error});
   }
 
   const handleSave = async(event) => {
   }
 
-  const handleCancel = async(event) => {
-    navigate(-1);
+  const checkDisabled = (action) => {
+    if (action === 'Save') {
+        let disabled = false;
+        for (let field in formError){
+            if (formError[field] != null) {
+                disabled = true;
+            }
+        }
+        return disabled;
+    }
   }
 
   const actions = [
-      { icon: <SaveIcon />, name: 'Save', action: handleSave , type: 'submit'},
-      { icon: <CloseIcon />, name: 'Cancel', action: handleCancel , type: 'button'},
-   ];
+      { icon: <SaveIcon />, name: 'Save', action: handleSave , type: 'submit', disabled: checkDisabled('Save')},
+  ];
 
   return(
   <React.Fragment>
@@ -121,7 +174,6 @@ export default function ItemEditView() {
              }}>
 
         {/*--------------------------------------------- Name ------- */}
-
         <TextField label="Name" name="name" variant="filled" fullWidth
             value={formData.name || ''} onChange={handleChange} />
 
@@ -132,7 +184,7 @@ export default function ItemEditView() {
             getOptionLabel={(option) => option.name}
             value={formData.tags || []}
             onChange={(event, newValue) => {
-                setFormData({type: 'tags', payload: newValue});
+                setFormData({field: 'tags', value: newValue});
             }}
             inputValue = {inputTag}
             onInputChange={(event, newValue) => {
@@ -140,7 +192,7 @@ export default function ItemEditView() {
                 if (newValue !== candidateValue) {
                     if ((candidateValue !== '') && (!checkTag(candidateValue, formData.tags))) {
                         const selectedTags = formData.tags.concat({name: candidateValue});
-                        setFormData({type: 'tags', payload: selectedTags});
+                        setFormData({field: 'tags', value: selectedTags});
                     }
                     setInputTag('');
                 } else {
@@ -167,19 +219,17 @@ export default function ItemEditView() {
         />
 
         {/*-------------------------------------- Description ------- */}
-
         <TextField label="Description" name="description" variant="filled"  multiline maxRows={6} fullWidth
             value={formData.description || ''} onChange={handleChange} />
 
         {/*-------------------------------------- Locations  -------- */}
-
         <Autocomplete name="locations"
             multiple fullWidth freeSolo disableClearable
             options={locations}
             getOptionLabel={(option) => option.name}
             value={formData.locations || []}
             onChange={(event, newValue) => {
-                setFormData({type: 'locations', payload: newValue});
+                setFormData({field: 'locations', value: newValue});
             }}
             inputValue = {inputLocation}
             onInputChange={(event, newValue) => {
@@ -187,7 +237,7 @@ export default function ItemEditView() {
                 if (newValue !== candidateValue) {
                     if ((candidateValue !== '') && (!checkLocation(candidateValue, formData.locations))) {
                         const selectedLocations = formData.locations.concat({name: candidateValue});
-                        setFormData({type: 'locations', payload: selectedLocations});
+                        setFormData({field: 'locations', value: selectedLocations});
                     }
                     setInputLocation('');
                 } else {
@@ -212,24 +262,29 @@ export default function ItemEditView() {
             }
 
         />
-        {/*-------------------------------------- Quantity  --------- */}
 
+        {/*-------------------------------------- Quantity  --------- */}
         <TextField name="quantity" label="Quantity" variant="filled" fullWidth
+            type="number"
             value={formData.quantity || ''} onChange={handleChange} />
 
         {/*-------------------------------------- Expiration  ------- */}
-
-        {/*Expiration date + has expiration ? */}
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DateField variant="filled" fullWidth maxDate='2200' format='DD / MM / YYYY'
+           value={formData.expiration_date || null} onChange={handleChange}
+           helperText={formError.expiration_date || ''}
+           onError={handleDateError}/>
+        </LocalizationProvider>
 
         {/*-------------------------------------- Code  ------------- */}
-
-        {/*Bar code*/}
+        <TextField name="code" label="Code" variant="filled" fullWidth
+            value={formData.code || ''} onChange={handleChange} />
 
         {/*-------------------------------------- Control  ---------- */}
 
         <SpeedDial
             ariaLabel="SpeedDial basic example"
-            sx={{ position: 'absolute', bottom: 16, right: 16 }}
+            sx={{ position: 'fixed', bottom: 16, right: 16 }}
             icon={<MoreVertIcon />} >
             {actions.map((action) => (
               <SpeedDialAction
@@ -238,6 +293,7 @@ export default function ItemEditView() {
                 tooltipTitle={action.name}
                 onClick={action.action}
                 type={action.type}
+                disabled={action.disabled}
               />
             ))}
       </SpeedDial>
