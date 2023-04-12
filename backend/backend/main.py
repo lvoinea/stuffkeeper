@@ -3,9 +3,11 @@ import uvicorn
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 import json
+import os.path
 from sqlalchemy.orm import Session
 
 from backend import crud, models, schemas, security
@@ -172,6 +174,25 @@ def update_user_item(
         raise HTTPException(status_code=404, detail="Item not found")
 
     return item_serializable
+
+#---------------------------------------------------- Images
+
+@app.get("/users/me/items/{item_id}/image/{image_id}", response_class=FileResponse, responses={404: {"description": "Item not found"}})
+def get_user_item_image(
+        item_id: int,
+        image_id: str,
+        db: Session = Depends(get_db),
+        current_user_db: schemas.User = Depends(get_current_active_user)):
+    """Get a specific image for an item associated with the current user."""
+
+    current_user_id = current_user_db.id
+
+
+    file_path = f'./local/photos/{current_user_id}/{image_id}'
+    if os.path.isfile(file_path):
+        return file_path
+    else:
+        raise HTTPException(status_code=404, detail="Item not found")
 
 #---------------------------------------------------- Tags
 

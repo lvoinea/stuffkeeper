@@ -46,6 +46,14 @@ export default function Items() {
     fetchData();
   });
 
+  const getThumbnail = (item) => {
+    if (item.photos?.thumbnail) {
+        return 'data:image/jpeg;base64,' + item.photos.thumbnail;
+    } else {
+        return 'https://placekitten.com/g/100/100'
+    }
+  }
+
   return(
     <React.Fragment>
 
@@ -64,7 +72,7 @@ export default function Items() {
                     width: '5rem',
                     height: '5rem',
                     objectFit: 'cover'}}
-                  src="https://placekitten.com/g/100/100"
+                  src={getThumbnail(item)}
                   alt={item.name}
                 />
             </div>

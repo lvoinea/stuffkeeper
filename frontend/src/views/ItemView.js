@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux'
 import { useNavigation, useNavigate, useParams } from "react-router-dom";
 
-import {loadItem, archiveItem} from '../services/backend';
+import {loadItem, archiveItem, loadItemImage} from '../services/backend';
 
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
@@ -26,6 +26,7 @@ export default function ItemView() {
   const { id } = useParams();
   const navigation = useNavigation();
   const navigate = useNavigate();
+  const imageRef = useRef(null);
 
   if (error) {
     throw error;
@@ -53,6 +54,13 @@ export default function ItemView() {
       { icon: <RemoveCircleIcon sx={{color: 'red'}} />, name: 'Delete', action: handleDelete},
    ];
 
+   const setImageRef = element => {
+      if ((imageRef.current == null) && (item.photos?.sources)) {
+        imageRef.current = element;
+        loadItemImage({token, id, image: item.photos?.sources[0], target: element })
+      }
+    };
+
   return(
   <React.Fragment>
 
@@ -79,6 +87,13 @@ export default function ItemView() {
                 <Chip key={item.id+ '_t_' + tag.name} label={tag.name} variant="outlined"/>
             )}
        </Stack>
+
+       {/*------------------------------------------- Images ------- */}
+       {(item.photos?.sources[0]) && (
+          <React.Fragment>
+            <img ref={setImageRef} alt={item.name} />
+       </React.Fragment>
+       )}
 
        {/*-------------------------------------- Description ------- */}
        <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
