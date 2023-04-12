@@ -37,7 +37,8 @@ export default function ItemView() {
 
   useEffect(() => {
     async function fetchData() {
-        setItem(await loadItem({token, id}));
+        const l_item  = await loadItem({token, id});
+        setItem(l_item);
     };
     fetchData().catch((error) => {setError(error)});
   }, [token, id]);
@@ -131,7 +132,7 @@ export default function ItemView() {
           )}
 
        {/*-------------------------------------- Code  ------------- */}
-       {(item.code !== "") && (
+       {(item.code) && (
            <React.Fragment>
            <Grid xs={4} item={true}>
            <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
@@ -149,7 +150,7 @@ export default function ItemView() {
 
        <SpeedDial
             ariaLabel="SpeedDial basic example"
-            sx={{ position: 'absolute', bottom: 16, right: 16 }}
+            sx={{ position: 'fixed', bottom: 16, right: 16 }}
             icon={<MoreVertIcon />} >
             {actions.map((action) => (
               <SpeedDialAction

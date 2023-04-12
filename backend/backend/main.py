@@ -2,8 +2,10 @@ from typing import List
 import uvicorn
 
 from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
+import json
 from sqlalchemy.orm import Session
 
 from backend import crud, models, schemas, security
@@ -101,6 +103,12 @@ def read_user(current_user_db: schemas.User = Depends(get_current_active_user)):
 
 #---------------------------------------------------- Items
 
+def create_serializable_item(item_db):
+    serializable_item = jsonable_encoder(item_db)
+    if ('photos' in serializable_item):
+        serializable_item['photos'] = json.loads(serializable_item['photos'])
+    return serializable_item
+
 @app.post("/user/me/items/", response_model=schemas.Item)
 def create_user_item(
         item: schemas.ItemCreate,
@@ -111,10 +119,11 @@ def create_user_item(
     current_user_id = current_user_db.id
 
     item_db = crud.create_user_item(db=db, item=item, user_id=current_user_id)
-    return item_db
+    item_serializable = create_serializable_item(item_db)
+    return item_serializable
 
 
-@app.get("/users/me/items/", response_model=List[schemas.ItemBrief])
+@app.get("/users/me/items/", response_model=List[schemas.Item])
 def get_user_items(
         skip: int = 0,
         limit: int = 100,
@@ -125,7 +134,8 @@ def get_user_items(
     current_user_id = current_user_db.id
 
     items_db = crud.get_user_items(db, current_user_id, skip=skip, limit=limit)
-    return items_db
+    items_serializable = [create_serializable_item(item_db) for item_db in items_db]
+    return items_serializable
 
 
 @app.get("/users/me/items/{item_id}", response_model=schemas.Item, responses={404: {"description": "Item not found"}})
@@ -139,10 +149,11 @@ def get_user_item(
 
     try:
         item_db = crud.get_user_item(db, current_user_id, item_id)
+        item_serializable = create_serializable_item(item_db)
     except crud.DbExceptionNotFound:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    return item_db
+    return item_serializable
 
 @app.post("/users/me/items/{item_id}", response_model=schemas.Item, responses={404: {"description": "Item not found"}})
 def update_user_item(
@@ -156,10 +167,11 @@ def update_user_item(
 
     try:
         item_db = crud.update_user_item(db=db, item_id=item_id, item=item, user_id=current_user_id)
+        item_serializable = create_serializable_item(item_db)
     except crud.DbExceptionNotFound:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    return item_db
+    return item_serializable
 
 #---------------------------------------------------- Tags
 

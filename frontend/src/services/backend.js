@@ -29,9 +29,23 @@ export function loginUser({username, password, grant_type, scope, client_id, cli
 
 //------------------------------------------- Items
 
+var items = null;
+
+const updateCachedItem = (id) => (savedItem) => {
+    if (items) {
+        const existingIndex = items.findIndex(record => record.id === parseInt(id));
+        if (existingIndex > -1) {
+            items[existingIndex] = savedItem;
+        } else {
+            items.push(savedItem);
+        }
+    }
+    return savedItem;
+}
+
 export function getItems({token}) {
   if (token) {
-    return fetch(`http://${backendAddress}/users/me/items/`, {
+    return items? items: fetch(`http://${backendAddress}/users/me/items/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -42,6 +56,10 @@ export function getItems({token}) {
       .then(response => {
         if(response.ok) {
             return response.json()
+            .then( serverItems => {
+                items = serverItems;
+                return items;
+            });
         }
         return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
       })
@@ -52,20 +70,27 @@ export function getItems({token}) {
 }
 
 export function loadItem({token, id}) {
-  return fetch(`http://${backendAddress}/users/me/items/${id}`, {
-    method: 'GET',
-    mode: 'cors',
-    headers: {
-     'Content-Type': 'application/json',
-     'Authorization': `Bearer ${token}`
+    if (items) {
+        const existingIndex = items.findIndex(record => record.id === parseInt(id));
+        if (existingIndex > -1) {
+            return items[existingIndex];
+        }
     }
-  })
-  .then(response => {
-    if(response.ok) {
-        return response.json()
-    }
-    return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
-  })
+    // Fallback on server functionality
+    return fetch(`http://${backendAddress}/users/me/items/${id}`, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => {
+        if(response.ok) {
+            return response.json()
+        }
+        return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
+     })
 }
 
 export function saveItem({token, item, id}) {
@@ -81,6 +106,7 @@ export function saveItem({token, item, id}) {
   .then(response => {
     if(response.ok) {
         return response.json()
+        .then(updateCachedItem(id));
     }
     return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
   })
@@ -99,6 +125,7 @@ export function archiveItem({token, id}) {
   .then(response => {
     if(response.ok) {
         return response.json()
+        .then(updateCachedItem(id));
     }
     return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
   })

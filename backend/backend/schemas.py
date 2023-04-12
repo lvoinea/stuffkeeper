@@ -65,49 +65,42 @@ class User(UserBase):
 
 #---------------------------------- Item
 
+class ItemPhotos(BaseModel):
+    thumbnail: Union[str, None] = None
+    selected: Union[str, None] = None
+    sources: Union[List[str], None] = None
+
 class ItemBase(BaseModel):
+    name: Union[str, None] = None
     description: Union[str, None] = None
-    code: Union[str, None] = None
 
     quantity: Union[int, None] = None
-    photo_large: Union[str, None] = None
-    photo_small: Union[str, None] = None
-
     expiration_date: Union[datetime.date, None] = None
+    code: Union[str, None] = None
+
+    photos: Union[ItemPhotos, None] = None
 
     locations: Union[List[LocationBase], None] = None
     tags: Union[List[TagBase], None] = None
 
 class ItemCreate(ItemBase):
-    name: str
+    pass
 
 class ItemUpdate(ItemBase):
-    name: Union[str, None] = None
-    removal_date: Union[datetime.date, None] = None
+    is_active: Union[bool, None] = None
+    is_bookmarked: Union[bool, None] = None
+    is_silenced: Union[bool, None] = None
 
-class Item(ItemBase):
+
+class Item(ItemUpdate):
     id: int
-    name: str
     addition_date: datetime.date
-    is_active: bool
     removal_date: Union[datetime.date, None] = None
 
     class Config:
         orm_mode = True
 
-class ItemBrief(BaseModel):
-    id: int
-    name: str
-    description: Union[str, None] = None
-    photo_small: Union[str, None] = None
-    quantity: int
-    expiration_date: Union[datetime.date, None] = None
-    is_active: bool
-    locations: List[LocationBase]
-
-    class Config:
-        orm_mode = True
-
+#---------------------------------- Item
 class Token(BaseModel):
     access_token: str
     token_type: str

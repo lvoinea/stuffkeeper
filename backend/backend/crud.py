@@ -1,5 +1,6 @@
 import datetime
 from sqlalchemy.orm import Session
+import json
 
 from . import models, schemas, security
 
@@ -12,12 +13,14 @@ class DbExceptionNotFound(DbException):
 
 #------------------------------------------ Utils
 
-def update_db_object(db: Session, db_object, poco_object):
+def prepare_db_object(db: Session, db_object, poco_object):
     """Copy the values of a data object (a.k.a., plain old class object - poco) to an ORM object.
     List entries are ignored and should be treated separately in the caller."""
     object_data = poco_object.dict(exclude_unset=True)
     for key, value in object_data.items():
-        if not isinstance(value, list):
+        if (key == 'photos'):
+            setattr(db_object, key, json.dumps(value))
+        elif not isinstance(value, list):
             setattr(db_object, key, value)
 
 def get_or_create(session, model, **kwargs):
@@ -37,7 +40,6 @@ def get_user(db: Session, user_id: int):
     The user is identified by its ID in the DB.
     """
     return db.query(models.User).filter(models.User.id == user_id).first()
-
 
 def get_user_by_email(db: Session, email: str):
     """Get a specific user in the DB.
@@ -92,7 +94,9 @@ def create_user_item(db: Session, item: schemas.ItemCreate, user_id: int):
     # Add normal fields
     item_fields = {}
     for key, value in item.dict(exclude_unset=True).items():
-        if not isinstance(value, list):
+        if (key == 'photos'):
+            item_fields[key] = json.dumps(value)
+        elif not isinstance(value, list):
             item_fields[key] = value
     db_item = models.Item(
         **item_fields,
@@ -130,7 +134,7 @@ def update_user_item(db: Session, item_id: int, item: schemas.ItemUpdate, user_i
         raise DbExceptionNotFound('Item not found')
 
     # Add normal fields
-    update_db_object(db, db_item, item)
+    prepare_db_object(db, db_item, item)
 
     # Update locations
     if item.locations:
@@ -174,7 +178,7 @@ def update_user_tag(db: Session, tag_id: int, tag: schemas.TagUpdate, user_id: i
         if (conflicting_tag and conflicting_tag.id != tag_id):
             raise DbException('Tag name already exists.')
 
-    update_db_object(db, db_tag, tag)
+    prepare_db_object(db, db_tag, tag)
 
     db.add(db_tag)
     db.commit()
@@ -204,7 +208,7 @@ def update_user_location(db: Session, location_id: int, location: schemas.Locati
         if (conflicting_location and conflicting_location.id != location_id):
             raise DbException('Location name already exists.')
 
-    update_db_object(db, db_location, location)
+    prepare_db_object(db, db_location, location)
 
     db.add(db_location)
     db.commit()

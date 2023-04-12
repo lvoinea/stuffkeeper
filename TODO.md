@@ -2,9 +2,11 @@
 
 ## Yes
 
+- Add image editing
+- Add caching of items
 - Add network simulation
 - Add archive view
-- Add image editing
+- Add bookmarking
 - Add searching
 - Add multi edit (delete/archive)
 - Add sort options
@@ -20,6 +22,8 @@ items before removing the object from the DB.
 
 ## Done
 
+- Load item from cache instead of server
+- Unify brief and detailed models
 - Add edit for tags and locations
 - Move logout to drawer
 - Add delete item to view panel

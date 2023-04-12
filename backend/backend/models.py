@@ -31,23 +31,25 @@ class Item(Base):
     __tablename__ = "items"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True, nullable=False)
+    name = Column(String, nullable=True)
     description = Column(String, nullable=True)
-    code = Column(String, index=True, default="")
 
     quantity = Column(Integer, nullable=False, default=1)
-    photo_large = Column(String, nullable=True)
-    photo_small = Column(String, nullable=True)
+    expiration_date = Column(Date, nullable=True)
+    code = Column(String, nullable=True)
+    photos = Column(String, nullable=True)
+
+    is_active = Column(Boolean, nullable=False, default=True)
+    is_bookmarked = Column(Boolean, nullable=False, default=False)
+    is_silenced = Column(Boolean, nullable=False, default=False)
 
     addition_date = Column(Date, nullable=False)
-    expiration_date = Column(Date, nullable=True)
     removal_date = Column(Date, nullable=True)
-    is_active = Column(Boolean, default=True)
 
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="items")
-    locations = relationship("Location", secondary="item_locations", back_populates='items')
-    tags = relationship("Tag", secondary="item_tags", back_populates='items')
+    locations = relationship("Location", secondary="item_locations", back_populates='items', lazy='joined')
+    tags = relationship("Tag", secondary="item_tags", back_populates='items', lazy='joined')
 
 class Location(Base):
     __tablename__ = "locations"

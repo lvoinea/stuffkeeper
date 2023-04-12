@@ -37,13 +37,14 @@ export default function Items() {
 
   useEffect(() => {
     async function fetchData() {
-        setItems(await getItems({token}));
+        const items = await getItems({token});
+        setItems(items);
         setTimeout(() => {
             window.scrollTo(0, scrollPosition);
         });
     };
     fetchData();
-  }, [token, scrollPosition]);
+  });
 
   return(
     <React.Fragment>
