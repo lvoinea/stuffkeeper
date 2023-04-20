@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux'
 import { useNavigation, useNavigate, useParams } from "react-router-dom";
 
-import {loadItem, archiveItem, loadItemImage} from '../services/backend';
+import {loadItem, archiveItem, loadItemImage, getItemImage} from '../services/backend';
 
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
@@ -22,6 +22,7 @@ export default function ItemView() {
 
   const [item, setItem] = useState({});
   const [error, setError] = useState(null);
+  const [images, setImages] = useState([]);
   const token = useSelector((state) => state.global.token);
   const { id } = useParams();
   const navigation = useNavigation();
@@ -40,6 +41,10 @@ export default function ItemView() {
     async function fetchData() {
         const l_item  = await loadItem({token, id});
         setItem(l_item);
+        if (l_item.photos?.sources[0]) {
+            const l_image = await  getItemImage({token, id, image: l_item.photos?.sources[0]});
+            setImages([l_image])
+        }
     };
     fetchData().catch((error) => {setError(error)});
   }, [token, id]);
@@ -57,7 +62,7 @@ export default function ItemView() {
    const setImageRef = element => {
       if ((imageRef.current == null) && (item.photos?.sources)) {
         imageRef.current = element;
-        loadItemImage({token, id, image: item.photos?.sources[0], target: element })
+        //loadItemImage({token, id, image: item.photos?.sources[0], target: element })
       }
     };
 
@@ -91,7 +96,7 @@ export default function ItemView() {
        {/*------------------------------------------- Images ------- */}
        {(item.photos?.sources[0]) && (
           <React.Fragment>
-            <img ref={setImageRef} alt={item.name} />
+            <img ref={setImageRef} alt={item.name} src={images[0]?images[0]:''}/>
        </React.Fragment>
        )}
 

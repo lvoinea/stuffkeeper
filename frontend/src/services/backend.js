@@ -162,6 +162,26 @@ export function loadItemImage({token, id, image, target}) {
     });
 }
 
+export function getItemImage({token, id, image}) {
+    return fetch(`http://${backendAddress}/users/me/items/${id}/image/${image}`, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+         'Content-Type': 'image/jpeg',
+         'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => {
+        if(response.ok) {
+            return response.blob()
+        }
+        return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
+    })
+    .then(blob => {
+      return URL.createObjectURL(blob);
+    });
+}
+
 //------------------------------------------- Token
 
 export function getTags({token}) {
