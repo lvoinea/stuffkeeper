@@ -75,6 +75,7 @@ class ItemBase(BaseModel):
     description: Union[str, None] = None
 
     quantity: Union[int, None] = None
+    cost: Union[int, None] = None
     expiration_date: Union[datetime.date, None] = None
     code: Union[str, None] = None
 

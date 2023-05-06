@@ -35,6 +35,7 @@ class Item(Base):
     description = Column(String, nullable=True)
 
     quantity = Column(Integer, nullable=False, default=1)
+    cost = Column(Integer,nullable=False, default=0)
     expiration_date = Column(Date, nullable=True)
     code = Column(String, nullable=True)
     photos = Column(String, nullable=True)

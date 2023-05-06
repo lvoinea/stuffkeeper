@@ -5,7 +5,7 @@ from backend.crud import *
 from backend.schemas import *
 
 db = SessionLocal()
-models.Base.metadata.create_all(bind=engine)
+#models.Base.metadata.create_all(bind=engine)
 
 #------------------ Config data
 
@@ -72,7 +72,8 @@ for thing in things:
             photos = item_photos,
             tags = item_tags,
             locations = item_locations,
-            quantity = random.randint(1, 2)
+            quantity = random.randint(1, 2),
+            cost=random.randint(0,10)
         ),
     user.id)
 

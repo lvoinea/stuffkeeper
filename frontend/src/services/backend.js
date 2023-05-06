@@ -132,37 +132,8 @@ export function archiveItem({token, id}) {
 }
 
 //------------------------------------------- Images
-/*
-fetch(src, options)
-.then(res => res.blob())
-.then(blob => {
-  imgElement.src = URL.createObjectURL(blob);
-});
-*/
 
-export function loadItemImage({token, id, image, target}) {
-    return fetch(`http://${backendAddress}/users/me/items/${id}/image/${image}`, {
-        method: 'GET',
-        mode: 'cors',
-        headers: {
-         'Content-Type': 'image/jpeg',
-         'Authorization': `Bearer ${token}`
-        }
-    })
-    .then(response => {
-        if(response.ok) {
-            return response.blob()
-        }
-        return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
-    })
-    .then(blob => {
-      if (target) {
-        target.src = URL.createObjectURL(blob);
-      }
-    });
-}
-
-export function getItemImage({token, id, image}) {
+export function loadItemImage({token, id, image}) {
     return fetch(`http://${backendAddress}/users/me/items/${id}/image/${image}`, {
         method: 'GET',
         mode: 'cors',

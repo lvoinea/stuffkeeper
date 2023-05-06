@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from backend import crud, models, schemas, security
 from backend.database import SessionLocal, engine
 
-models.Base.metadata.create_all(bind=engine)
+#models.Base.metadata.create_all(bind=engine)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 

@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux'
 import { useNavigation, useNavigate, useParams } from "react-router-dom";
 
-import {loadItem, archiveItem, loadItemImage, getItemImage} from '../services/backend';
+import {loadItem, archiveItem, loadItemImage} from '../services/backend';
 
+import Carousel from 'react-material-ui-carousel'
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import SpeedDial from '@mui/material/SpeedDial';
@@ -27,7 +28,6 @@ export default function ItemView() {
   const { id } = useParams();
   const navigation = useNavigation();
   const navigate = useNavigate();
-  const imageRef = useRef(null);
 
   if (error) {
     throw error;
@@ -42,8 +42,11 @@ export default function ItemView() {
         const l_item  = await loadItem({token, id});
         setItem(l_item);
         if (l_item.photos?.sources[0]) {
-            const l_image = await  getItemImage({token, id, image: l_item.photos?.sources[0]});
-            setImages([l_image])
+            let l_images=[];
+            for(let i=0; i<l_item.photos.sources.length; i++) {
+                l_images.push(await  loadItemImage({token, id, image: l_item.photos.sources[i]}));
+            }
+            setImages(l_images);
         }
     };
     fetchData().catch((error) => {setError(error)});
@@ -58,13 +61,6 @@ export default function ItemView() {
       { icon: <ModeEditOutlineOutlinedIcon />, name: 'Edit', action: handleEdit },
       { icon: <RemoveCircleIcon sx={{color: 'red'}} />, name: 'Delete', action: handleDelete},
    ];
-
-   const setImageRef = element => {
-      if ((imageRef.current == null) && (item.photos?.sources)) {
-        imageRef.current = element;
-        //loadItemImage({token, id, image: item.photos?.sources[0], target: element })
-      }
-    };
 
   return(
   <React.Fragment>
@@ -96,8 +92,16 @@ export default function ItemView() {
        {/*------------------------------------------- Images ------- */}
        {(item.photos?.sources[0]) && (
           <React.Fragment>
-            <img ref={setImageRef} alt={item.name} src={images[0]?images[0]:''}/>
-       </React.Fragment>
+             <Carousel sx={{width: '100%', border: 1, borderColor: '#cccccc', alignItems: 'center'}} height={240}>
+                {
+                    images.map( (image, i) => {
+                        return (
+                            <img key={i} alt={`${item.name} ${i}`} src={image} style={{width: '100%', height: 240, objectFit: 'cover'}}/>
+                        )
+                    })
+                }
+             </Carousel>
+          </React.Fragment>
        )}
 
        {/*-------------------------------------- Description ------- */}
@@ -130,6 +134,21 @@ export default function ItemView() {
           <Grid xs={8} item={true}>
                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary">
                    {item.quantity}
+               </Typography>
+          </Grid>
+          </React.Fragment>
+          )}
+          {/*-------------------------------------- Cost  --------- */}
+          {(item.cost !== 0) && (
+          <React.Fragment>
+          <Grid xs={4} item={true}>
+               <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
+                   Cost
+               </Typography>
+          </Grid>
+          <Grid xs={8} item={true}>
+               <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary">
+                   {item.cost}
                </Typography>
           </Grid>
           </React.Fragment>

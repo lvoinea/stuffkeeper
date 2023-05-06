@@ -268,6 +268,11 @@ export default function ItemEditView() {
             type="number"
             value={formData.quantity || ''} onChange={handleChange} />
 
+        {/*-------------------------------------- Cost  --------- */}
+        <TextField name="cost" label="Cost" variant="filled" fullWidth
+            type="number" InputProps={{ inputProps: { min: 0 } }}
+            value={formData.cost || ''} onChange={handleChange} />
+
         {/*-------------------------------------- Expiration  ------- */}
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DateField variant="filled" fullWidth maxDate='2200' format='DD / MM / YYYY'
