@@ -1,23 +1,32 @@
-import React, {useEffect, useReducer, useState} from 'react';
+import React, {useEffect, useReducer, useState, useRef, useCallback} from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigation, useNavigate, useParams } from "react-router-dom";
 
 import _ from 'lodash';
 import dayjs from 'dayjs'
 
-import { loadItem, saveItem, checkTag, checkLocation } from '../services/backend';
+import { loadItem, saveItem, checkTag, checkLocation, loadItemImage } from '../services/backend';
 import {setTags, setLocations} from '../services/store';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Autocomplete from '@mui/material/Autocomplete';
+import Box from '@mui/material/Box';
+import Carousel from 'react-material-ui-carousel';
 import Chip from '@mui/material/Chip';
 import { DateField } from '@mui/x-date-pickers/DateField';
+import Fab from '@mui/material/Fab';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import Modal from '@mui/material/Modal';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import Webcam from "react-webcam";
 
+import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import ClearIcon from '@mui/icons-material/Clear';
 import SaveIcon from '@mui/icons-material/Save';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
@@ -33,18 +42,29 @@ const formReducer = (state, action) => {
 
 export default function ItemEditView() {
 
+  const IMAGE_HEIGHT = 240;
+  const videoConstraints = {
+      width: 1280,
+      height: 720,
+      facingMode: { ideal: "environment" },
+      zoom: 2
+  };
+
   const [item, setItem] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useReducer(formReducer, {});
   const [formError, setFormError] = useReducer(formReducer, {});
+  const [images, setImages] = useState([]);
   const [inputTag, setInputTag] = useState('');
   const [inputLocation, setInputLocation] = useState('');
+  const [open, setOpen] = React.useState(false);
 
   const token = useSelector((state) => state.global.token);
   const tags = useSelector((state) => state.global.tags);
   const locations = useSelector((state) => state.global.locations);
 
+  const webcamRef = useRef(null);
   const { id } = useParams();
   const navigate = useNavigate();
   const navigation = useNavigation();
@@ -58,6 +78,7 @@ export default function ItemEditView() {
     async function fetchData() {
         let l_item = await loadItem({token, id})
         setItem(l_item);
+        // Pre-fill form fields
         for (let field in l_item){
             // Need to deserialize expiration date
             if (field === 'expiration_date') {
@@ -66,6 +87,14 @@ export default function ItemEditView() {
             } else if (field !== 'id') {
                 setFormData({field: field, value: l_item[field]});
             }
+        }
+        // Load images
+        if (l_item.photos?.sources[0]) {
+            let l_images=[];
+            for(let i=0; i<l_item.photos.sources.length; i++) {
+                l_images.push(await  loadItemImage({token, id, image: l_item.photos.sources[i]}));
+            }
+            setImages(l_images);
         }
     };
     fetchData().catch((error) => {setError(error)});
@@ -159,6 +188,23 @@ export default function ItemEditView() {
       { icon: <SaveIcon />, name: 'Save', action: handleSave , type: 'submit', disabled: checkDisabled('Save')},
   ];
 
+  const handleOpenPhoto = () => {
+    setOpen(true);
+  };
+
+  const handleClosePhoto = () => {
+    setOpen(false);
+  };
+
+  const handleAddPhoto = useCallback(
+    () => {
+      const newImage = webcamRef.current.getScreenshot();
+      setImages(images.concat([newImage]));
+      setOpen(false);
+    },
+    [webcamRef, images]
+  );
+
   return(
   <React.Fragment>
   <form onSubmit={handleSubmit} disabled={isSaving}>
@@ -217,6 +263,76 @@ export default function ItemEditView() {
             }
 
         />
+        {/*------------------------------------------- Images ------- */}
+         <React.Fragment>
+             <Carousel sx={{width: '100%', border: 1, borderColor: '#cccccc', alignItems: 'center'}}
+                height={IMAGE_HEIGHT}
+                autoPlay={false} animation='slide'>
+                {
+
+                    images.map( (image, i) => {
+                        return (
+
+                            <img key={i} alt={`${item.name} ${i}`} src={image} style={{width: '100%', height: IMAGE_HEIGHT, objectFit: 'cover'}}/>
+                        )
+                    }).concat(
+                        <Box key={2} sx={{
+                            width: '100%',
+                            height: IMAGE_HEIGHT,
+                            backgroundColor: '#eeeeee',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            flexDirection: 'column'}}>
+                          <Fab color="primary" aria-label="add photo" onClick={handleOpenPhoto}>
+                            <AddAPhotoIcon />
+                          </Fab>
+                          <Typography component="span" variant="h6" color="text.primary" align="justify" onClick={handleOpenPhoto}>
+                               Click to add a photo
+                          </Typography>
+                        </Box>
+                    )
+                }
+             </Carousel>
+         </React.Fragment>
+
+         <Modal
+            open={open}
+            onClose={handleClosePhoto}
+            aria-labelledby="modal-add-photo"
+            aria-describedby="modal-take-product-photo">
+            <Box sx={{position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '90%',
+                  bgcolor: 'white',
+                  padding: '10px',
+                  borderRadius: '5px',
+                  border: 0}}>
+                  <Webcam
+                    audio={false}
+                    height={240}
+                    ref={webcamRef}
+                    screenshotFormat="image/jpeg"
+                    width='100%'
+                    videoConstraints={videoConstraints}
+                    />
+
+                    <Box sx={{
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'space-between'}}>
+                      <Fab color="error" aria-label="add photo" onClick={handleClosePhoto}>
+                        <ClearIcon />
+                      </Fab>
+                      <Fab color="primary" aria-label="add photo" onClick={handleAddPhoto}>
+                        <CameraAltIcon />
+                      </Fab>
+                    </Box>
+
+            </Box>
+         </Modal>
 
         {/*-------------------------------------- Description ------- */}
         <TextField label="Description" name="description" variant="filled"  multiline maxRows={6} fullWidth

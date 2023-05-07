@@ -4,7 +4,7 @@ import { useNavigation, useNavigate, useParams } from "react-router-dom";
 
 import {loadItem, archiveItem, loadItemImage} from '../services/backend';
 
-import Carousel from 'react-material-ui-carousel'
+import Carousel from 'react-material-ui-carousel';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import SpeedDial from '@mui/material/SpeedDial';
@@ -41,6 +41,7 @@ export default function ItemView() {
     async function fetchData() {
         const l_item  = await loadItem({token, id});
         setItem(l_item);
+        // Load images
         if (l_item.photos?.sources[0]) {
             let l_images=[];
             for(let i=0; i<l_item.photos.sources.length; i++) {
