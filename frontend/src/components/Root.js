@@ -19,7 +19,7 @@ import Typography from '@mui/material/Typography';
 import InputBase from '@mui/material/InputBase';
 import IconButton from '@mui/material/IconButton';
 
-import CloseIcon from '@mui/icons-material/Close';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import MoreIcon from '@mui/icons-material/MoreVert';
@@ -229,7 +229,7 @@ export default function Root() {
                   onClick={handleClose}
                   color="inherit"
                 >
-                  <CloseIcon />
+                  <ExitToAppIcon />
                 </IconButton>
             </Box>
           )}

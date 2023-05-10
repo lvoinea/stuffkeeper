@@ -1,4 +1,4 @@
-import React, {useEffect, useReducer, useState, useRef, useCallback} from 'react';
+import React, {useEffect, useReducer, useState, useRef} from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigation, useNavigate, useParams } from "react-router-dom";
 
@@ -7,6 +7,7 @@ import dayjs from 'dayjs'
 
 import { loadItem, saveItem, checkTag, checkLocation, loadItemImage } from '../services/backend';
 import {setTags, setLocations} from '../services/store';
+import {blobToDataUrl} from '../services/utils';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -27,8 +28,11 @@ import Webcam from "react-webcam";
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import ClearIcon from '@mui/icons-material/Clear';
-import SaveIcon from '@mui/icons-material/Save';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import SaveIcon from '@mui/icons-material/Save';
+import ZoomInMapIcon from '@mui/icons-material/ZoomInMap';
+import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
 
 
 const formReducer = (state, action) => {
@@ -38,17 +42,27 @@ const formReducer = (state, action) => {
   }
 }
 
-
+const makeThumbnail = async (size, imageUrl) => {
+    const image = new Image();
+    image.src = imageUrl;
+    // Extract the centerpiece
+    const offsetX = (image.width > image.height) ? (image.width - image.height) /2 : 0;
+    const offsetY = (image.width < image.height) ? (image.height - image.width) /2 : 0;
+    let canvas = new OffscreenCanvas(size, size);
+    let ctx = canvas.getContext("2d");
+    ctx.drawImage(
+        image,
+        offsetX, offsetY, image.width - 2*offsetX, image.height - 2 * offsetY,
+        0, 0, size, size
+    );
+    const imageBlob = await canvas.convertToBlob({type: "image/jpeg", quality: 1});
+    const dataUrl = await blobToDataUrl(imageBlob);
+    return dataUrl.replace(/^data:image\/?[A-z]*;base64,/,'');
+}
 
 export default function ItemEditView() {
 
   const IMAGE_HEIGHT = 240;
-  const videoConstraints = {
-      width: 1280,
-      height: 720,
-      facingMode: { ideal: "environment" },
-      zoom: 2
-  };
 
   const [item, setItem] = useState({});
   const [isSaving, setIsSaving] = useState(false);
@@ -59,6 +73,12 @@ export default function ItemEditView() {
   const [inputTag, setInputTag] = useState('');
   const [inputLocation, setInputLocation] = useState('');
   const [open, setOpen] = React.useState(false);
+  const [videoConstraints, setVideoConstraints] = React.useState({
+      width: 1280,
+      height: 720,
+      facingMode: { ideal: "environment" },
+      zoom: 2
+  });
 
   const token = useSelector((state) => state.global.token);
   const tags = useSelector((state) => state.global.tags);
@@ -196,14 +216,49 @@ export default function ItemEditView() {
     setOpen(false);
   };
 
-  const handleAddPhoto = useCallback(
+  const handleAddPhoto =
     () => {
       const newImage = webcamRef.current.getScreenshot();
       setImages(images.concat([newImage]));
+      setFormData({field: 'photos', value: {
+        ...formData.photos,
+        'sources': formData.photos.sources.concat(['-'])
+      }});
       setOpen(false);
-    },
-    [webcamRef, images]
-  );
+    };
+
+  const handleRemovePhoto = (index) => () => {
+      console.log('Remove ',index);
+      let selectedSource = images[index];
+      let newImages = images.slice();
+      newImages.splice(index,1);
+      let newSources = formData.photos.sources.slice();
+      newSources.splice(index,1);
+      setImages(newImages);
+      setFormData({field: 'photos', value: {
+        ...formData.photos,
+        'sources': newSources
+      }});
+      if (selectedSource === formData.photos.selected) {
+        // TODO: replace formData.photos.thumbnail with first element
+      }
+  }
+
+  const handlePinPhoto = (index) => async () => {
+    const newThumbnail = await makeThumbnail(100, images[index]);
+    setFormData({field: 'photos', value: {
+        ...formData.photos,
+        'thumbnail': newThumbnail,
+        'selected': (formData.photos.sources[index] !== '-') ? formData.photos.sources[index]: `_{index}`
+      }});
+  }
+
+  const setZoom = (level) => () => {
+    setVideoConstraints({
+        ...videoConstraints,
+        zoom: level
+    });
+  }
 
   return(
   <React.Fragment>
@@ -267,16 +322,53 @@ export default function ItemEditView() {
          <React.Fragment>
              <Carousel sx={{width: '100%', border: 1, borderColor: '#cccccc', alignItems: 'center'}}
                 height={IMAGE_HEIGHT}
-                autoPlay={false} animation='slide'>
+                autoPlay={false} animation='slide'
+                navButtonsAlwaysInvisible={true}>
                 {
 
                     images.map( (image, i) => {
                         return (
+                         <Box key={i} sx={{
+                            width: '100%',
+                            height: IMAGE_HEIGHT,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            flexDirection: 'column'}}>
 
-                            <img key={i} alt={`${item.name} ${i}`} src={image} style={{width: '100%', height: IMAGE_HEIGHT, objectFit: 'cover'}}/>
+                            <img  alt={`${item.name} ${i}`} src={image} style={{width: '100%', height: IMAGE_HEIGHT, objectFit: 'cover'}}/>
+
+                            {/*--- Mini toolbar --*/}
+                            <Box sx={{
+                                width: '100%',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                position: 'absolute', left: '0px', top: '0px'}}>
+
+                                    <Fab color="error" aria-label="delete photo"
+                                        onClick={handleRemovePhoto(i)}
+                                        size='small'
+                                        sx={{marginLeft: '5px', marginTop: '10px'}}>
+                                        <ClearIcon />
+                                    </Fab>
+
+
+                                    <Fab aria-label="pin photo"
+                                    onClick={handlePinPhoto(i)}
+                                    size='small'
+                                    disabled = {formData.photos.selected === formData.photos.sources[i]}
+                                    sx={{marginRight: '5px', marginTop: '10px'}}>
+                                        <PushPinIcon />
+                                    </Fab>
+
+
+                            </Box>
+
+                         </Box>
                         )
                     }).concat(
-                        <Box key={2} sx={{
+                        /*--- Add photo slide --*/
+                        <Box key={images.length} sx={{
                             width: '100%',
                             height: IMAGE_HEIGHT,
                             backgroundColor: '#eeeeee',
@@ -296,6 +388,7 @@ export default function ItemEditView() {
              </Carousel>
          </React.Fragment>
 
+         {/*------------------------------------------- Camera ------- */}
          <Modal
             open={open}
             onClose={handleClosePhoto}
@@ -307,12 +400,11 @@ export default function ItemEditView() {
                   transform: 'translate(-50%, -50%)',
                   width: '90%',
                   bgcolor: 'white',
-                  padding: '10px',
-                  borderRadius: '5px',
+                  padding: '2px',
                   border: 0}}>
                   <Webcam
                     audio={false}
-                    height={240}
+
                     ref={webcamRef}
                     screenshotFormat="image/jpeg"
                     width='100%'
@@ -322,13 +414,45 @@ export default function ItemEditView() {
                     <Box sx={{
                         width: '100%',
                         display: 'flex',
-                        justifyContent: 'space-between'}}>
-                      <Fab color="error" aria-label="add photo" onClick={handleClosePhoto}>
+                        justifyContent: 'space-between',
+                        position: 'absolute', bottom: '0px', left: '0px'}}>
+                      <Fab aria-label="add photo"
+                            onClick={handleClosePhoto}
+                            size='small'
+                            sx={{marginLeft: '5px', marginBottom: '10px'}}>
                         <ClearIcon />
                       </Fab>
-                      <Fab color="primary" aria-label="add photo" onClick={handleAddPhoto}>
+                      <Fab aria-label="add photo"
+                            onClick={handleAddPhoto}
+                            size='small'
+                            sx={{marginRight: '5px', marginBottom: '10px'}}>
                         <CameraAltIcon />
                       </Fab>
+                    </Box>
+
+                    <Box sx={{
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'start',
+                        position: 'absolute', left: '0px', top: '0px'}}>
+                        {(videoConstraints.zoom === 1) &&
+                            <Fab aria-label="add photo"
+                                onClick={setZoom(2)}
+                                size='small'
+                                sx={{marginLeft: '5px', marginTop: '10px'}}>
+                                <ZoomInMapIcon />
+                            </Fab>
+                        }
+
+                        {(videoConstraints.zoom === 2) &&
+                            <Fab aria-label="add photo"
+                            onClick={setZoom(1)}
+                            size='small'
+                            sx={{marginLeft: '5px', marginTop: '10px'}}>
+                                <ZoomOutMapIcon />
+                            </Fab>
+                        }
+
                     </Box>
 
             </Box>

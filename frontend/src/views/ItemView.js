@@ -4,8 +4,10 @@ import { useNavigation, useNavigate, useParams } from "react-router-dom";
 
 import {loadItem, archiveItem, loadItemImage} from '../services/backend';
 
+import Box from '@mui/material/Box';
 import Carousel from 'react-material-ui-carousel';
 import Chip from '@mui/material/Chip';
+import Fab from '@mui/material/Fab';
 import Grid from '@mui/material/Grid';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
@@ -14,12 +16,15 @@ import Typography from '@mui/material/Typography';
 
 import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutlined';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import PushPinIcon from '@mui/icons-material/PushPin';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 
 import GlobalLoading from '../components/GlobalLoading';
 
 
 export default function ItemView() {
+
+  const IMAGE_HEIGHT = 240;
 
   const [item, setItem] = useState({});
   const [error, setError] = useState(null);
@@ -93,11 +98,32 @@ export default function ItemView() {
        {/*------------------------------------------- Images ------- */}
        {(item.photos?.sources[0]) && (
           <React.Fragment>
-             <Carousel sx={{width: '100%', border: 1, borderColor: '#cccccc', alignItems: 'center'}} height={240}>
+             <Carousel sx={{width: '100%', border: 1, borderColor: '#cccccc', alignItems: 'center'}}
+                    height={IMAGE_HEIGHT}
+                    autoPlay={false} animation='slide'
+                    navButtonsAlwaysInvisible={true}>
                 {
                     images.map( (image, i) => {
                         return (
-                            <img key={i} alt={`${item.name} ${i}`} src={image} style={{width: '100%', height: 240, objectFit: 'cover'}}/>
+
+                        <Box key={i} sx={{
+                            width: '100%',
+                            height: IMAGE_HEIGHT,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            flexDirection: 'column'}}>
+
+                            <img  alt={`${item.name} ${i}`} src={image} style={{width: '100%', height: IMAGE_HEIGHT, objectFit: 'cover'}}/>
+
+                            {(item.photos.selected === item.photos.sources[i]) &&
+                                <Fab color="error" aria-label="delete photo"
+                                    size='small'
+                                    sx={{ position: 'absolute', right: '10px', top: '10px'}}>
+                                    <PushPinIcon sx={{color:"white"}}/>
+                                </Fab>
+                            }
+                        </Box>
                         )
                     })
                 }
