@@ -9,15 +9,19 @@ import Carousel from 'react-material-ui-carousel';
 import Chip from '@mui/material/Chip';
 import Fab from '@mui/material/Fab';
 import Grid from '@mui/material/Grid';
+import Modal from '@mui/material/Modal';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
 import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutlined';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import PushPinIcon from '@mui/icons-material/PushPin';
-import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
 
 import GlobalLoading from '../components/GlobalLoading';
 
@@ -29,6 +33,8 @@ export default function ItemView() {
   const [item, setItem] = useState({});
   const [error, setError] = useState(null);
   const [images, setImages] = useState([]);
+  const [open, setOpen] = React.useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
   const token = useSelector((state) => state.global.token);
   const { id } = useParams();
   const navigation = useNavigation();
@@ -65,8 +71,17 @@ export default function ItemView() {
 
    const actions = [
       { icon: <ModeEditOutlineOutlinedIcon />, name: 'Edit', action: handleEdit },
-      { icon: <RemoveCircleIcon sx={{color: 'red'}} />, name: 'Delete', action: handleDelete},
+      { icon: <DeleteIcon sx={{color: "#a10666"}}/>, name: 'Delete', action: handleDelete},
    ];
+
+   const handleOpenZoom = (index) => () => {
+        setSelectedImageIndex(index);
+        setOpen(true);
+   }
+
+   const handleCloseZoom = () => {
+        setOpen(false);
+   };
 
   return(
   <React.Fragment>
@@ -116,11 +131,18 @@ export default function ItemView() {
 
                             <img  alt={`${item.name} ${i}`} src={image} style={{width: '100%', height: IMAGE_HEIGHT, objectFit: 'cover'}}/>
 
-                            {(item.photos.selected === item.photos.sources[i]) &&
-                                <Fab color="error" aria-label="delete photo"
+                            <Fab aria-label="zoom photo"
+                                    onClick={handleOpenZoom(i)}
                                     size='small'
-                                    sx={{ position: 'absolute', right: '10px', top: '10px'}}>
-                                    <PushPinIcon sx={{color:"white"}}/>
+                                    sx={{ position: 'absolute', left: '10px', top: '10px', opacity: 0.6}}>
+                                    <ZoomInIcon />
+                            </Fab>
+
+                            {(item.photos.selected === item.photos.sources[i]) &&
+                                <Fab aria-label="photo used as thumbnail"
+                                    size='small'
+                                    sx={{ position: 'absolute', right: '10px', top: '10px', opacity: 0.6}}>
+                                    <PushPinIcon />
                                 </Fab>
                             }
                         </Box>
@@ -131,6 +153,43 @@ export default function ItemView() {
           </React.Fragment>
        )}
 
+       {/*-------------------------------------- Zoomed photo -------*/}
+       <Modal
+            open={open}
+            onClose={handleCloseZoom}
+            aria-labelledby="modal-add-photo"
+            aria-describedby="modal-take-product-photo">
+            <Box sx={{position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  height: '100%',
+                  width: '100%',
+                  bgcolor: 'black',
+                  padding: '2px',
+                  border: 0}}>
+
+                  <TransformWrapper
+                    centerOnInit={true}
+                    disablePadding={true}
+                  >
+                      <TransformComponent  wrapperStyle={{
+                          width: "100%",
+                          height: "100%"
+                        }}>
+                        <img alt={`${item.name} ${selectedImageIndex}`} src={images[selectedImageIndex]} style={{width: '100%', objectFit: 'cover'}}/>
+                      </TransformComponent>
+                  </TransformWrapper>
+
+                  <Fab aria-label="photo used as thumbnail"
+                    size='small'
+                    onClick={handleCloseZoom}
+                    sx={{ position: 'absolute', right: '10px', top: '10px', opacity: 0.8}}>
+                    <CloseIcon />
+                  </Fab>
+
+            </Box>
+       </Modal>
        {/*-------------------------------------- Description ------- */}
        <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
            {item.description}

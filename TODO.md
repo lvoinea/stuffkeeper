@@ -7,11 +7,9 @@
   - Extend the carousel with an empty plate
   - Add buttons to plates: delete, add, pin
   - On add, use the cropper to crop the image but do not save to server?
-  - Add zoom/control buttons (wide, normal, ...)
-  - On saving the item, save first the item reference and then the images
-    In this way there will be no hangign references, but potentially invalid
-    missing pictures.
-  - On saving the item, delete photos that are no longer valid
+  - Add zoom/control buttons (wide, normal, ...).
+  - On saving the item, save first images to get image names and then the item.
+  - On saving the item, delete photos that are no longer valid.
 - Add caching of items
 - Add network simulation
 - Add archive view

@@ -28,6 +28,7 @@ import Webcam from "react-webcam";
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import ClearIcon from '@mui/icons-material/Clear';
+import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import SaveIcon from '@mui/icons-material/Save';
@@ -345,11 +346,11 @@ export default function ItemEditView() {
                                 justifyContent: 'space-between',
                                 position: 'absolute', left: '0px', top: '0px'}}>
 
-                                    <Fab color="error" aria-label="delete photo"
+                                    <Fab aria-label="delete photo"
                                         onClick={handleRemovePhoto(i)}
                                         size='small'
-                                        sx={{marginLeft: '5px', marginTop: '10px'}}>
-                                        <ClearIcon />
+                                        sx={{marginLeft: '5px', marginTop: '10px', opacity: 0.7}}>
+                                        <DeleteIcon sx={{color: "#a10666"}}/>
                                     </Fab>
 
 
@@ -357,7 +358,7 @@ export default function ItemEditView() {
                                     onClick={handlePinPhoto(i)}
                                     size='small'
                                     disabled = {formData.photos.selected === formData.photos.sources[i]}
-                                    sx={{marginRight: '5px', marginTop: '10px'}}>
+                                    sx={{marginRight: '5px', marginTop: '10px', opacity: 0.7}}>
                                         <PushPinIcon />
                                     </Fab>
 
