@@ -1,7 +1,11 @@
 from typing import List
 import uvicorn
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from datetime import date
+from time import time
+import os
+
+from fastapi import Depends, FastAPI, HTTPException, status, UploadFile
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -193,6 +197,29 @@ def get_user_item_image(
         return file_path
     else:
         raise HTTPException(status_code=404, detail="Item not found")
+
+@app.post("/users/me/items/{item_id}/image", responses={404: {"description": "Item not found"}})
+def upload_user_image(
+        item_id: int,
+        file: UploadFile,
+        db: Session = Depends(get_db),
+        current_user_db: schemas.User = Depends(get_current_active_user)):
+    """Upload an image file for an item associated with the current user"""
+
+    current_user_id = current_user_db.id
+
+    d = date.today()
+    t = int(time())
+
+    image_dir = f'./local/photos/{current_user_id}/{d.year}/{d.month}'
+    os.makedirs(image_dir, exist_ok=True)
+    image_file =f'{image_dir}/{t}.jpeg'
+    image_id = f'{d.year}/{d.month}/{t}.jpeg'
+
+    with open(image_file, "wb") as image:
+        image.write(file.file.read())
+
+    return {"filename": image_id}
 
 #---------------------------------------------------- Tags
 
