@@ -12,6 +12,7 @@
   - On saving the item, delete photos that are no longer valid.
   - On photo upload create different resolutions.
   - On clicking the image load the full size in modal.
+  - Add loading indicator.
 - Add caching of items
 - Add network simulation
 - Add archive view

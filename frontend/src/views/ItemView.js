@@ -77,7 +77,8 @@ export default function ItemView() {
 
    const handleOpenZoom = (index) => async () => {
         setSelectedImageIndex(index);
-        setSelectedImage(await  loadItemImage({token, id, image: item.photos.sources[index] + '.full'}));
+        const image = await loadItemImage({token, id, image: item.photos.sources[index] + '.full'});
+        setSelectedImage(image);
         setOpen(true);
    }
 

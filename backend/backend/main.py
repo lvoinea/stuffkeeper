@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import json
 import os
 import os.path
-from PIL import Image
+from PIL import Image, ImageOps
 from sqlalchemy.orm import Session
 from time import time
 from typing import List
@@ -228,7 +228,9 @@ def upload_user_image(
     THUMB_SIZE = 80
 
     img = Image.open(image_file_full)
+    img = ImageOps.exif_transpose(img)
     (width, height) = img.size
+    img.save(image_file_full, 'JPEG', quality='web_high')
 
     ratio_normal = NORMAL_WIDTH / width
     img_normal = img.resize(
