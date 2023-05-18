@@ -50,7 +50,8 @@ export default function Items() {
     if (item.photos?.thumbnail) {
         return 'data:image/jpeg;base64,' + item.photos.thumbnail;
     } else {
-        return 'https://placekitten.com/g/100/100'
+        // If the thumbnail is not avaiable replace it with a standard image
+        return 'no-image-icon.gif';
     }
   }
 

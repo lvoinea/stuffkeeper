@@ -55,7 +55,7 @@ for thing in things:
     item_photos = ItemPhotos(sources=[])
     if (nr_photos > 1):
         item_photos.thumbnail = thumbnail
-        item_photos.selected = 'photo1.jpeg'
+        item_photos.selected = 0
         item_photos.sources.append('photo1.jpeg')
     if (nr_photos > 2):
         item_photos.sources.append('photo2.jpeg')

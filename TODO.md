@@ -10,6 +10,7 @@
   - Add zoom/control buttons (wide, normal, ...).
   - On saving the item, save first images to get image names and then the item.
   - On saving the item, delete photos that are no longer valid.
+  - On photo upload create different resolutions.
 - Add caching of items
 - Add network simulation
 - Add archive view
@@ -29,6 +30,7 @@ items before removing the object from the DB.
 
 ## Done
 
+- Added photo zoom
 - Load item from cache instead of server
 - Unify brief and detailed models
 - Add edit for tags and locations

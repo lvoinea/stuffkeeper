@@ -1,18 +1,20 @@
-from typing import List
 import uvicorn
 
 from datetime import date
-from time import time
-import os
 
 from fastapi import Depends, FastAPI, HTTPException, status, UploadFile
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
+
 import json
+import os
 import os.path
+from PIL import Image
 from sqlalchemy.orm import Session
+from time import time
+from typing import List
 
 from backend import crud, models, schemas, security
 from backend.database import SessionLocal, engine
@@ -191,8 +193,8 @@ def get_user_item_image(
 
     current_user_id = current_user_db.id
 
-
-    file_path = f'./local/photos/{current_user_id}/{image_id}'
+    path_id = image_id.replace('-','/')
+    file_path = f'./local/photos/{current_user_id}/{path_id}'
     if os.path.isfile(file_path):
         return file_path
     else:
@@ -213,11 +215,34 @@ def upload_user_image(
 
     image_dir = f'./local/photos/{current_user_id}/{d.year}/{d.month}'
     os.makedirs(image_dir, exist_ok=True)
-    image_file =f'{image_dir}/{t}.jpeg'
-    image_id = f'{d.year}/{d.month}/{t}.jpeg'
 
-    with open(image_file, "wb") as image:
+    image_file =f'{image_dir}/{t}.jpeg'
+    image_file_full = f'{image_file}.full'
+    image_file_thumb = f'{image_file}.thumb'
+    image_id = f'{d.year}-{d.month}-{t}.jpeg'
+
+    with open(image_file_full, "wb") as image:
         image.write(file.file.read())
+
+    NORMAL_WIDTH = 320
+    THUMB_SIZE = 80
+
+    img = Image.open(image_file_full)
+    (width, height) = img.size
+
+    ratio_normal = NORMAL_WIDTH / width
+    img_normal = img.resize(
+        (int(width * ratio_normal), int(height*ratio_normal)),
+        Image.Resampling.LANCZOS
+    )
+    img_normal.save(image_file, 'JPEG', quality='web_high')
+
+    ratio_thumb = max(THUMB_SIZE / width, THUMB_SIZE / height)
+    img_normal = img.resize(
+        (int(width * ratio_thumb), int(height*ratio_thumb)),
+        Image.Resampling.LANCZOS
+    )
+    img_normal.save(image_file_thumb, 'JPEG', quality='web_high')
 
     return {"filename": image_id}
 

@@ -67,7 +67,7 @@ class User(UserBase):
 
 class ItemPhotos(BaseModel):
     thumbnail: Union[str, None] = None
-    selected: Union[str, None] = None
+    selected: Union[int, None] = None
     sources: Union[List[str], None] = None
 
 class ItemBase(BaseModel):

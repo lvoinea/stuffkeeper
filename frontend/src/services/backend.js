@@ -153,6 +153,27 @@ export function loadItemImage({token, id, image}) {
     });
 }
 
+export async function saveItemImage({token, id, imageUrl}) {
+    const imageBlob = await fetch(imageUrl).then(r => r.blob()).then(blobFile => new File([blobFile], "image", { type: "image/jpeg" }));
+    const formData = new FormData();
+    formData.append('file', imageBlob);
+
+    return fetch(`http://${backendAddress}/users/me/items/${id}/image/`, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+         'Authorization': `Bearer ${token}`
+        },
+        body: formData
+    })
+    .then(response => {
+        if(response.ok) {
+            return response.json()
+        }
+        return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
+    });
+}
+
 //------------------------------------------- Token
 
 export function getTags({token}) {

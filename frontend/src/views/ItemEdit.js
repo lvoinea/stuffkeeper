@@ -5,7 +5,7 @@ import { useNavigation, useNavigate, useParams } from "react-router-dom";
 import _ from 'lodash';
 import dayjs from 'dayjs'
 
-import { loadItem, saveItem, checkTag, checkLocation, loadItemImage } from '../services/backend';
+import { loadItem, saveItem, checkTag, checkLocation, loadItemImage, saveItemImage } from '../services/backend';
 import {setTags, setLocations} from '../services/store';
 import {blobToDataUrl} from '../services/utils';
 
@@ -17,24 +17,17 @@ import Chip from '@mui/material/Chip';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import Fab from '@mui/material/Fab';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import Modal from '@mui/material/Modal';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import Webcam from "react-webcam";
 
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
-import CameraAltIcon from '@mui/icons-material/CameraAlt';
-import ClearIcon from '@mui/icons-material/Clear';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import SaveIcon from '@mui/icons-material/Save';
-import ZoomInMapIcon from '@mui/icons-material/ZoomInMap';
-import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
-
 
 const formReducer = (state, action) => {
   return {
@@ -43,9 +36,17 @@ const formReducer = (state, action) => {
   }
 }
 
+const createImage = async (src) => {
+  return new Promise((resolve, reject) => {
+    let img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  })
+}
+
 const makeThumbnail = async (size, imageUrl) => {
-    const image = new Image();
-    image.src = imageUrl;
+    const image = await createImage(imageUrl);
     // Extract the centerpiece
     const offsetX = (image.width > image.height) ? (image.width - image.height) /2 : 0;
     const offsetY = (image.width < image.height) ? (image.height - image.width) /2 : 0;
@@ -64,6 +65,7 @@ const makeThumbnail = async (size, imageUrl) => {
 export default function ItemEditView() {
 
   const IMAGE_HEIGHT = 240;
+  const THUMBNAIL_SIZE = 80;
 
   const [item, setItem] = useState({});
   const [isSaving, setIsSaving] = useState(false);
@@ -73,19 +75,12 @@ export default function ItemEditView() {
   const [images, setImages] = useState([]);
   const [inputTag, setInputTag] = useState('');
   const [inputLocation, setInputLocation] = useState('');
-  const [open, setOpen] = React.useState(false);
-  const [videoConstraints, setVideoConstraints] = React.useState({
-      width: 1280,
-      height: 720,
-      facingMode: { ideal: "environment" },
-      zoom: 2
-  });
 
   const token = useSelector((state) => state.global.token);
   const tags = useSelector((state) => state.global.tags);
   const locations = useSelector((state) => state.global.locations);
 
-  const webcamRef = useRef(null);
+  const inputFile = useRef(null);
   const { id } = useParams();
   const navigate = useNavigate();
   const navigation = useNavigation();
@@ -143,6 +138,18 @@ export default function ItemEditView() {
     }
     if (needsSaving){
         setIsSaving(true);
+
+        // Check whether there are new photos to save (i.e., source is '-')
+        // and save them. For each saved source, retrieve the id as reported by
+        // the backend and use it instead of '-' the item.
+        for (let i=0; i<updatedItem.photos.sources.length; i++){
+            if (updatedItem.photos.sources[i] === '-') {
+                const photoId = await saveItemImage({token, id, imageUrl: images[i]});
+                updatedItem.photos.sources[i] = photoId.filename;
+            }
+        }
+
+        // Save the item itself
         await saveItem({token, item: updatedItem, id});
         // Update cached tags if new ones are added
         const newTags = updatedItem.tags?.filter(tag => !checkTag(tag.name, tags));
@@ -154,6 +161,7 @@ export default function ItemEditView() {
         if (newLocations) {
             dispatch(setLocations(locations.concat(newLocations)));
         }
+
         setIsSaving(false);
         navigate(-1);
     }
@@ -209,57 +217,72 @@ export default function ItemEditView() {
       { icon: <SaveIcon />, name: 'Save', action: handleSave , type: 'submit', disabled: checkDisabled('Save')},
   ];
 
-  const handleOpenPhoto = () => {
-    setOpen(true);
+  const onOpenCamera = () => {
+    inputFile.current.click();
   };
+  
+  const onTakePhoto = async (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+    const file = event.target.files[0];
+    const newImage = URL.createObjectURL(file);
+    setImages(images.concat([newImage]));
 
-  const handleClosePhoto = () => {
-    setOpen(false);
-  };
-
-  const handleAddPhoto =
-    () => {
-      const newImage = webcamRef.current.getScreenshot();
-      setImages(images.concat([newImage]));
-      setFormData({field: 'photos', value: {
-        ...formData.photos,
+    let newPhotos = {
         'sources': formData.photos.sources.concat(['-'])
-      }});
-      setOpen(false);
-    };
+    }
+    if (formData.photos.selected == null) {
+        // When no thumbnail has been previously set, create one
+        // from the currently added image.
+        newPhotos['thumbnail'] = await makeThumbnail(THUMBNAIL_SIZE, newImage);
+        newPhotos['selected'] = images.length;
+    }
+    else {
+        newPhotos['thumbnail'] = formData.photos.thumbnail
+        newPhotos['selected'] = formData.photos.selected;
+    }
+    setFormData({field: 'photos', value: newPhotos});
+  };
 
-  const handleRemovePhoto = (index) => () => {
-      console.log('Remove ',index);
-      let selectedSource = images[index];
-      let newImages = images.slice();
-      newImages.splice(index,1);
-      let newSources = formData.photos.sources.slice();
-      newSources.splice(index,1);
-      setImages(newImages);
-      setFormData({field: 'photos', value: {
-        ...formData.photos,
-        'sources': newSources
-      }});
-      if (selectedSource === formData.photos.selected) {
-        // TODO: replace formData.photos.thumbnail with first element
-      }
-  }
-
-  const handlePinPhoto = (index) => async () => {
-    const newThumbnail = await makeThumbnail(100, images[index]);
+  const onPinPhoto = (index) => async () => {
+    const newThumbnail = await makeThumbnail(THUMBNAIL_SIZE, images[index]);
     setFormData({field: 'photos', value: {
         ...formData.photos,
         'thumbnail': newThumbnail,
-        'selected': (formData.photos.sources[index] !== '-') ? formData.photos.sources[index]: `_{index}`
+        'selected': index
       }});
   }
 
-  const setZoom = (level) => () => {
-    setVideoConstraints({
-        ...videoConstraints,
-        zoom: level
-    });
+  const onRemovePhoto = (index) => async () => {
+
+      let newImages = images.slice();
+      newImages.splice(index,1);
+      setImages(newImages);
+
+      let newSources = formData.photos.sources.slice();
+      newSources.splice(index,1);
+
+      let newPhotos = {
+        'sources': newSources
+      }
+      if (newImages.length > 0) {
+           if (index === formData.photos.selected) {
+               // Replace thumbnail with first available image when it
+               // is associated with the removed image.
+               // When no image is left, remove the thumbnail.
+               newPhotos['thumbnail'] = await makeThumbnail(THUMBNAIL_SIZE, newImages[0]);
+               newPhotos['selected'] = 0;
+           }
+           else {
+               // If the thumbnail is from another image, keep it
+               newPhotos['thumbnail'] = formData.photos.thumbnail
+               newPhotos['selected'] = (formData.photos.selected > index) ? formData.photos.selected -1 : formData.photos.selected;
+           }
+      }
+      setFormData({field: 'photos', value: newPhotos});
   }
+
+
 
   return(
   <React.Fragment>
@@ -347,7 +370,7 @@ export default function ItemEditView() {
                                 position: 'absolute', left: '0px', top: '0px'}}>
 
                                     <Fab aria-label="delete photo"
-                                        onClick={handleRemovePhoto(i)}
+                                        onClick={onRemovePhoto(i)}
                                         size='small'
                                         sx={{marginLeft: '5px', marginTop: '10px', opacity: 0.7}}>
                                         <DeleteIcon sx={{color: "#a10666"}}/>
@@ -355,14 +378,12 @@ export default function ItemEditView() {
 
 
                                     <Fab aria-label="pin photo"
-                                    onClick={handlePinPhoto(i)}
+                                    onClick={onPinPhoto(i)}
                                     size='small'
-                                    disabled = {formData.photos.selected === formData.photos.sources[i]}
+                                    disabled = {formData.photos.selected === i}
                                     sx={{marginRight: '5px', marginTop: '10px', opacity: 0.7}}>
                                         <PushPinIcon />
                                     </Fab>
-
-
                             </Box>
 
                          </Box>
@@ -377,87 +398,19 @@ export default function ItemEditView() {
                             justifyContent: 'center',
                             alignItems: 'center',
                             flexDirection: 'column'}}>
-                          <Fab color="primary" aria-label="add photo" onClick={handleOpenPhoto}>
+                          <Fab color="primary" aria-label="add photo" onClick={onOpenCamera}>
                             <AddAPhotoIcon />
                           </Fab>
-                          <Typography component="span" variant="h6" color="text.primary" align="justify" onClick={handleOpenPhoto}>
+                          <Typography component="span" variant="h6" color="text.primary" align="justify" onClick={onOpenCamera}>
                                Click to add a photo
                           </Typography>
+                          <input type='file' ref={inputFile} style={{display: 'none'}}
+                            onChange={onTakePhoto}/>
                         </Box>
                     )
                 }
              </Carousel>
          </React.Fragment>
-
-         {/*------------------------------------------- Camera ------- */}
-         <Modal
-            open={open}
-            onClose={handleClosePhoto}
-            aria-labelledby="modal-add-photo"
-            aria-describedby="modal-take-product-photo">
-            <Box sx={{position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: '90%',
-                  bgcolor: 'white',
-                  padding: '2px',
-                  border: 0}}>
-                  <Webcam
-                    audio={false}
-
-                    ref={webcamRef}
-                    screenshotFormat="image/jpeg"
-                    width='100%'
-                    videoConstraints={videoConstraints}
-                    />
-
-                    <Box sx={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        position: 'absolute', bottom: '0px', left: '0px'}}>
-                      <Fab aria-label="add photo"
-                            onClick={handleClosePhoto}
-                            size='small'
-                            sx={{marginLeft: '5px', marginBottom: '10px'}}>
-                        <ClearIcon />
-                      </Fab>
-                      <Fab aria-label="add photo"
-                            onClick={handleAddPhoto}
-                            size='small'
-                            sx={{marginRight: '5px', marginBottom: '10px'}}>
-                        <CameraAltIcon />
-                      </Fab>
-                    </Box>
-
-                    <Box sx={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'start',
-                        position: 'absolute', left: '0px', top: '0px'}}>
-                        {(videoConstraints.zoom === 1) &&
-                            <Fab aria-label="add photo"
-                                onClick={setZoom(2)}
-                                size='small'
-                                sx={{marginLeft: '5px', marginTop: '10px'}}>
-                                <ZoomInMapIcon />
-                            </Fab>
-                        }
-
-                        {(videoConstraints.zoom === 2) &&
-                            <Fab aria-label="add photo"
-                            onClick={setZoom(1)}
-                            size='small'
-                            sx={{marginLeft: '5px', marginTop: '10px'}}>
-                                <ZoomOutMapIcon />
-                            </Fab>
-                        }
-
-                    </Box>
-
-            </Box>
-         </Modal>
 
         {/*-------------------------------------- Description ------- */}
         <TextField label="Description" name="description" variant="filled"  multiline maxRows={6} fullWidth

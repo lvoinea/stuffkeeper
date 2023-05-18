@@ -138,7 +138,7 @@ export default function ItemView() {
                                     <ZoomInIcon />
                             </Fab>
 
-                            {(item.photos.selected === item.photos.sources[i]) &&
+                            {(item.photos.selected === i) &&
                                 <Fab aria-label="photo used as thumbnail"
                                     size='small'
                                     sx={{ position: 'absolute', right: '10px', top: '10px', opacity: 0.6}}>
