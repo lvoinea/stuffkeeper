@@ -35,6 +35,7 @@ export default function ItemView() {
   const [images, setImages] = useState([]);
   const [open, setOpen] = React.useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
+  const [selectedImage, setSelectedImage] = React.useState('');
   const token = useSelector((state) => state.global.token);
   const { id } = useParams();
   const navigation = useNavigation();
@@ -74,8 +75,9 @@ export default function ItemView() {
       { icon: <DeleteIcon sx={{color: "#a10666"}}/>, name: 'Delete', action: handleDelete},
    ];
 
-   const handleOpenZoom = (index) => () => {
+   const handleOpenZoom = (index) => async () => {
         setSelectedImageIndex(index);
+        setSelectedImage(await  loadItemImage({token, id, image: item.photos.sources[index] + '.full'}));
         setOpen(true);
    }
 
@@ -177,7 +179,7 @@ export default function ItemView() {
                           width: "100%",
                           height: "100%"
                         }}>
-                        <img alt={`${item.name} ${selectedImageIndex}`} src={images[selectedImageIndex]} style={{width: '100%', objectFit: 'cover'}}/>
+                        <img alt={`${item.name} zoom ${selectedImageIndex}`} src={selectedImage} style={{width: '100%', objectFit: 'cover'}}/>
                       </TransformComponent>
                   </TransformWrapper>
 

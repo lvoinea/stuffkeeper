@@ -11,6 +11,7 @@
   - On saving the item, save first images to get image names and then the item.
   - On saving the item, delete photos that are no longer valid.
   - On photo upload create different resolutions.
+  - On clicking the image load the full size in modal.
 - Add caching of items
 - Add network simulation
 - Add archive view
