@@ -203,6 +203,7 @@ def get_user_item_image(
 @app.post("/users/me/items/{item_id}/image", responses={404: {"description": "Item not found"}})
 def upload_user_image(
         item_id: int,
+        mode: str,
         file: UploadFile,
         db: Session = Depends(get_db),
         current_user_db: schemas.User = Depends(get_current_active_user)):
@@ -224,13 +225,23 @@ def upload_user_image(
     with open(image_file_full, "wb") as image:
         image.write(file.file.read())
 
+    SD_WIDTH = 640
     NORMAL_WIDTH = 320
     THUMB_SIZE = 80
 
     img = Image.open(image_file_full)
     img = ImageOps.exif_transpose(img)
     (width, height) = img.size
-    img.save(image_file_full, 'JPEG', quality='web_high')
+
+    if (mode == 'sd'):
+        ratio_full = SD_WIDTH / width
+        img_full = img.resize(
+            (int(width * ratio_full), int(height * ratio_full)),
+            Image.Resampling.LANCZOS
+        )
+    else:
+        img_full = img
+    img_full.save(image_file_full, 'JPEG', quality='web_high')
 
     ratio_normal = NORMAL_WIDTH / width
     img_normal = img.resize(

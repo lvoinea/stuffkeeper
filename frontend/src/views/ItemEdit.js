@@ -9,6 +9,9 @@ import { loadItem, saveItem, checkTag, checkLocation, loadItemImage, saveItemIma
 import {setTags, setLocations} from '../services/store';
 import {blobToDataUrl} from '../services/utils';
 
+import { Cropper } from "react-cropper";
+import "cropperjs/dist/cropper.css";
+
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
@@ -17,6 +20,7 @@ import Chip from '@mui/material/Chip';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import Fab from '@mui/material/Fab';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import Modal from '@mui/material/Modal';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
 import Stack from '@mui/material/Stack';
@@ -24,10 +28,13 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
+import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import HdIcon from '@mui/icons-material/Hd';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import SaveIcon from '@mui/icons-material/Save';
+import SdIcon from '@mui/icons-material/Sd';
 
 const formReducer = (state, action) => {
   return {
@@ -42,6 +49,18 @@ const createImage = async (src) => {
     img.onload = () => resolve(img);
     img.onerror = reject;
     img.src = src;
+  })
+}
+
+const canvasToBlob = async (canvas) => {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        resolve(blob);
+      },
+      "image/jpeg",
+      0.95
+    );
   })
 }
 
@@ -66,8 +85,12 @@ export default function ItemEditView() {
 
   const IMAGE_HEIGHT = 240;
   const THUMBNAIL_SIZE = 80;
+  const SD_PHOTO = 'sd';
+  const HD_PHOTO = 'hd';
 
   const [item, setItem] = useState({});
+  const [open, setOpen] = useState(false);
+  const [newPhoto, setNewPhoto] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useReducer(formReducer, {});
@@ -81,6 +104,7 @@ export default function ItemEditView() {
   const locations = useSelector((state) => state.global.locations);
 
   const inputFile = useRef(null);
+  const cropperRef = useRef(null);
   const { id } = useParams();
   const navigate = useNavigate();
   const navigation = useNavigation();
@@ -139,12 +163,13 @@ export default function ItemEditView() {
     if (needsSaving){
         setIsSaving(true);
 
-        // Check whether there are new photos to save (i.e., source is '-')
+        // Check whether there are new photos to save (i.e., source is SD_PHOTO or HD_PHOTO)
         // and save them. For each saved source, retrieve the id as reported by
-        // the backend and use it instead of '-' the item.
+        // the backend and use it instead of the new photo marker in the item.
         for (let i=0; i<updatedItem.photos.sources.length; i++){
-            if (updatedItem.photos.sources[i] === '-') {
-                const photoId = await saveItemImage({token, id, imageUrl: images[i]});
+            const sourceName = updatedItem.photos.sources[i];
+            if ((sourceName === SD_PHOTO) || (sourceName === HD_PHOTO)) {
+                const photoId = await saveItemImage({token, id, imageUrl: images[i], mode: sourceName});
                 updatedItem.photos.sources[i] = photoId.filename;
             }
         }
@@ -220,16 +245,26 @@ export default function ItemEditView() {
   const onOpenCamera = () => {
     inputFile.current.click();
   };
-  
+
   const onTakePhoto = async (event) => {
     event.stopPropagation();
     event.preventDefault();
     const file = event.target.files[0];
     const newImage = URL.createObjectURL(file);
-    setImages(images.concat([newImage]));
+    setNewPhoto(newImage);
+    setOpen(true);
+  }
+
+  const onPhotoCancel = () => setOpen(false);
+
+  const onSavePhoto = (mode) => async (event) => {
+    const cropper = cropperRef.current?.cropper;
+    //const newImage = cropper.getCroppedCanvas().toDataURL();
+    const newImage = await canvasToBlob(cropper.getCroppedCanvas());
+    setImages(images.concat([URL.createObjectURL(newImage)]));
 
     let newPhotos = {
-        'sources': formData.photos.sources.concat(['-'])
+        'sources': formData.photos.sources.concat([mode])
     }
     if (formData.photos.selected == null) {
         // When no thumbnail has been previously set, create one
@@ -242,6 +277,7 @@ export default function ItemEditView() {
         newPhotos['selected'] = formData.photos.selected;
     }
     setFormData({field: 'photos', value: newPhotos});
+    setOpen(false);
   };
 
   const onPinPhoto = (index) => async () => {
@@ -281,8 +317,6 @@ export default function ItemEditView() {
       }
       setFormData({field: 'photos', value: newPhotos});
   }
-
-
 
   return(
   <React.Fragment>
@@ -411,6 +445,44 @@ export default function ItemEditView() {
                 }
              </Carousel>
          </React.Fragment>
+
+        <Modal
+            open={open}
+            onClose={onPhotoCancel}
+            aria-labelledby="modal-modal-title"
+            aria-describedby="modal-modal-description">
+            <Box sx={{
+              width: '100%',
+              height: '100vh',
+              display: 'flex',
+              backgroundColor: 'black',
+              alignItems: 'center'
+            }}>
+             <Cropper
+                  src={newPhoto}
+                  style={{ width: "100%" }}
+                  // Cropper.js options
+                  viewMode={3}
+                  guides={false}
+                  ref={cropperRef}
+                />
+             <Fab aria-label="abort" onClick={onPhotoCancel}
+                size='small'
+                sx={{ position: 'fixed', top: 16, right: 16, opacity: 0.7}}>
+                <CloseIcon />
+             </Fab>
+             <Fab aria-label="abort" onClick={onSavePhoto('sd')}
+                size='small'
+                sx={{ position: 'fixed', bottom: 16, left: 16, opacity: 0.7}}>
+                <SdIcon />
+             </Fab>
+             <Fab aria-label="abort" onClick={onSavePhoto('hd')}
+                size='small'
+                sx={{ position: 'fixed', bottom: 16, right: 16, opacity: 0.7}}>
+                <HdIcon />
+             </Fab>
+            </Box>
+        </Modal>
 
         {/*-------------------------------------- Description ------- */}
         <TextField label="Description" name="description" variant="filled"  multiline maxRows={6} fullWidth
