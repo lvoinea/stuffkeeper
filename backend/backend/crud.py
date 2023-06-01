@@ -1,6 +1,7 @@
 import datetime
 from sqlalchemy.orm import Session
 import json
+import os
 
 from . import models, schemas, security
 
@@ -133,7 +134,17 @@ def update_user_item(db: Session, item_id: int, item: schemas.ItemUpdate, user_i
     if not db_item:
         raise DbExceptionNotFound('Item not found')
 
-    #TODO: Remove deleted images
+    # Remove deleted images
+    if (item.photos):
+        previous = json.loads(db_item.photos)
+        for source in previous['sources']:
+            if source not in item.photos.sources:
+                path_id = source.replace('-', '/')
+                file_path = f'./local/photos/{user_id}/{path_id}'
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+                    os.remove(f'{file_path}.full')
+                    os.remove(f'{file_path}.thumb')
 
     # Add normal fields
     prepare_db_object(db, db_item, item)

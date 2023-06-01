@@ -172,12 +172,14 @@ export default function ItemEditView() {
         // Check whether there are new photos to save (i.e., source is SD_PHOTO or HD_PHOTO)
         // and save them. For each saved source, retrieve the id as reported by
         // the backend and use it instead of the new photo marker in the item.
-        for (let i=0; i<updatedItem.photos.sources.length; i++){
+        if (updatedItem.photos) {
+          for (let i=0; i<updatedItem.photos.sources.length; i++){
             const sourceName = updatedItem.photos.sources[i];
             if ((sourceName === SD_PHOTO) || (sourceName === HD_PHOTO)) {
                 const photoId = await saveItemImage({token, id, imageUrl: images[i], mode: sourceName});
                 updatedItem.photos.sources[i] = photoId.filename;
             }
+          }
         }
 
         // Save the item itself
