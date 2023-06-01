@@ -133,6 +133,8 @@ def update_user_item(db: Session, item_id: int, item: schemas.ItemUpdate, user_i
     if not db_item:
         raise DbExceptionNotFound('Item not found')
 
+    #TODO: Remove deleted images
+
     # Add normal fields
     prepare_db_object(db, db_item, item)
 

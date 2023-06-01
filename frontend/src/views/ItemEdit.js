@@ -14,9 +14,11 @@ import "cropperjs/dist/cropper.css";
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Autocomplete from '@mui/material/Autocomplete';
+import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
 import Carousel from 'react-material-ui-carousel';
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import Fab from '@mui/material/Fab';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -90,6 +92,7 @@ export default function ItemEditView() {
 
   const [item, setItem] = useState({});
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [newPhoto, setNewPhoto] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -137,7 +140,10 @@ export default function ItemEditView() {
             setImages(l_images);
         }
     };
-    fetchData().catch((error) => {setError(error)});
+    setLoading(true);
+    fetchData()
+    .catch((error) => {setError(error)})
+    .finally(()=> {setLoading(false)});
   }, [token, id]);
 
   const handleSubmit = async (event) => {
@@ -331,6 +337,15 @@ export default function ItemEditView() {
                 transition: 'opacity 200ms',
                 transitionDelay: '200ms'
              }}>
+
+        {/*------------------------------------------ Loading ------- */}
+          <Backdrop
+            sx={{ color: '#2c5585', backgroundColor: 'rgba(0, 0, 0, 0.1);', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            open={loading}
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
+
 
         {/*--------------------------------------------- Name ------- */}
         <TextField label="Name" name="name" variant="filled" fullWidth

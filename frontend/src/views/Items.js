@@ -2,7 +2,9 @@ import React, {useEffect, useState} from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from "react-router-dom";
 
+import Backdrop from '@mui/material/Backdrop';
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import Fab from '@mui/material/Fab';
 import List from '@mui/material/List';
@@ -21,6 +23,7 @@ import {setSelectedItem, setYItems} from '../services/store';
 export default function Items() {
 
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const token = useSelector((state) => state.global.token);
   const scrollPosition = useSelector((state) => state.global.itemsY);
@@ -43,8 +46,10 @@ export default function Items() {
             window.scrollTo(0, scrollPosition);
         });
     };
-    fetchData();
-  });
+    setLoading(true);
+    fetchData()
+    .finally(()=> {setLoading(false)});
+  }, [token, scrollPosition]);
 
   const getThumbnail = (item) => {
     if (item.photos?.thumbnail) {
@@ -57,6 +62,14 @@ export default function Items() {
 
   return(
     <React.Fragment>
+
+     {/*------------------------------------------ Loading ------- */}
+     <Backdrop
+        sx={{ color: '#2c5585', backgroundColor: 'rgba(0, 0, 0, 0.1);', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loading}
+     >
+        <CircularProgress color="inherit" />
+     </Backdrop>
 
     {/*------------------------------------------- List of items ----------*/}
     <List sx={{ width: '100%' }}>

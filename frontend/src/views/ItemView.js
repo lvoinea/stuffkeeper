@@ -4,9 +4,11 @@ import { useNavigation, useNavigate, useParams } from "react-router-dom";
 
 import {loadItem, archiveItem, loadItemImage} from '../services/backend';
 
+import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
 import Carousel from 'react-material-ui-carousel';
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
 import Fab from '@mui/material/Fab';
 import Grid from '@mui/material/Grid';
 import Modal from '@mui/material/Modal';
@@ -31,6 +33,7 @@ export default function ItemView() {
   const IMAGE_HEIGHT = 240;
 
   const [item, setItem] = useState({});
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [images, setImages] = useState([]);
   const [open, setOpen] = React.useState(false);
@@ -62,7 +65,10 @@ export default function ItemView() {
             setImages(l_images);
         }
     };
-    fetchData().catch((error) => {setError(error)});
+    setLoading(true);
+    fetchData()
+    .catch((error) => {setError(error)})
+    .finally(()=> {setLoading(false)});
   }, [token, id]);
 
    const handleDelete = async() => {
@@ -101,6 +107,14 @@ export default function ItemView() {
                 transition: 'opacity 200ms',
                 transitionDelay: '200ms'
              }}>
+
+       {/*------------------------------------------ Loading ------- */}
+          <Backdrop
+            sx={{ color: '#2c5585', backgroundColor: 'rgba(0, 0, 0, 0.1);', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            open={loading}
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
        {/*--------------------------------------------- Name ------- */}
        <Typography sx={{ display: 'inline' }} component="span" variant="h4" color="text.primary">
            {item.name}
