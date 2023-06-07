@@ -2,6 +2,27 @@
 
 ## Yes
 
+- Add searching
+
+- Add bookmarking
+- Mark archived items
+- Add archive view
+
+- Add multi edit (delete/archive)
+- Add sort options
+
+- Add notifications for expiration + clear notification
+
+- Unit tests
+
+## Maybe
+
+- Add delete for tags and locations. 
+This should remove the tag/location from all associated
+items before removing the object from the DB.
+
+## Done
+- Add new item
 - Add image editing
   - Add the carousel as well
   - Extend the carousel with an empty plate
@@ -14,23 +35,6 @@
   - Add loading indicator.
 - Add caching of items
 - Add network simulation
-- Add archive view
-- Add bookmarking
-- Add searching
-- Add multi edit (delete/archive)
-- Add sort options
-- Add bookmark
-- Add notifications for expiration + clear notification
-- Unit tests
-
-## Maybe
-
-- Add delete for tags and locations. 
-This should remove the tag/location from all associated
-items before removing the object from the DB.
-
-## Done
-
 - Added photo zoom
 - Load item from cache instead of server
 - Unify brief and detailed models

@@ -37,7 +37,7 @@ const updateCachedItem = (id) => (savedItem) => {
         if (existingIndex > -1) {
             items[existingIndex] = savedItem;
         } else {
-            items.push(savedItem);
+            items.unshift(savedItem);
         }
     }
     return savedItem;
@@ -107,6 +107,28 @@ export function saveItem({token, item, id}) {
     if(response.ok) {
         return response.json()
         .then(updateCachedItem(id));
+    }
+    return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
+  })
+}
+
+export function addItem({token, item}) {
+  return fetch(`http://${backendAddress}/users/me/items`, {
+    method: 'POST',
+    mode: 'cors',
+    headers: {
+     'Content-Type': 'application/json',
+     'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(item)
+  })
+  .then(response => {
+    if(response.ok) {
+        return response.json()
+        .then(newItem => {
+            updateCachedItem(newItem.id)(newItem);
+            return newItem;
+        });
     }
     return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
   })

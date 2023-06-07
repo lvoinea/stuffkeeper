@@ -16,7 +16,7 @@ import Stack from '@mui/material/Stack';
 
 import AddIcon from '@mui/icons-material/Add';
 
-import {getItems} from '../services/backend';
+import {getItems, addItem} from '../services/backend';
 import {setSelectedItem, setYItems} from '../services/store';
 
 
@@ -60,6 +60,22 @@ export default function Items() {
     }
   }
 
+  const onAddItem = async () => {
+    const newItem = {
+      "name": "New Item",
+      "description": "",
+      "quantity": 1,
+      "cost": 0,
+      "photos": {
+        "sources": []
+      }
+    }
+    const addedItem = await addItem({token, item: newItem});
+    dispatch(setSelectedItem({name: addedItem.name, id: addedItem.id}));
+    dispatch(setYItems(window.pageYOffset));
+    navigate(`/items/${addedItem.id}/edit`);
+  }
+
   return(
     <React.Fragment>
 
@@ -73,7 +89,7 @@ export default function Items() {
 
     {/*------------------------------------------- List of items ----------*/}
     <List sx={{ width: '100%' }}>
-        {items.map(item =>
+        {items.map(item => item.is_active &&
           <React.Fragment key={item.id}>
           <ListItem disablePadding>
             <ListItemButton role={undefined} onClick={handleSelectItem(item)}
@@ -103,7 +119,7 @@ export default function Items() {
                   secondary={
                     <React.Fragment>
                       <Typography sx={{ display: 'inline' }} component="span" variant="body2" color="text.primary">
-                        {item.description.slice(0,64)}<br/>
+                        {item.description?.slice(0,64)}<br/>
                       </Typography>
                     </React.Fragment>
                   }
@@ -122,8 +138,10 @@ export default function Items() {
         )}
     </List>
     {/*------------------------------------------- Add Item ---------------*/}
-    <Fab color="primary" aria-label="add" sx={{ position: 'fixed', right: '20px', bottom: '20px'}}>
-        <AddIcon />
+    <Fab color="primary" aria-label="add"
+        onClick={onAddItem}
+        sx={{ position: 'fixed', right: '20px', bottom: '20px'}}>
+            <AddIcon />
     </Fab>
     </React.Fragment>
   );

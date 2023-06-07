@@ -117,7 +117,7 @@ def create_serializable_item(item_db):
         serializable_item['photos'] = json.loads(serializable_item['photos'])
     return serializable_item
 
-@app.post("/user/me/items/", response_model=schemas.Item)
+@app.post("/users/me/items/", response_model=schemas.Item)
 def create_user_item(
         item: schemas.ItemCreate,
         db: Session = Depends(get_db),
@@ -143,6 +143,7 @@ def get_user_items(
 
     items_db = crud.get_user_items(db, current_user_id, skip=skip, limit=limit)
     items_serializable = [create_serializable_item(item_db) for item_db in items_db]
+    items_serializable = sorted(items_serializable, key= lambda x: x['addition_date'], reverse=True)
     return items_serializable
 
 

@@ -267,9 +267,9 @@ export default function ItemEditView() {
 
   const onSavePhoto = (mode) => async (event) => {
     const cropper = cropperRef.current?.cropper;
-    //const newImage = cropper.getCroppedCanvas().toDataURL();
     const newImage = await canvasToBlob(cropper.getCroppedCanvas());
-    setImages(images.concat([URL.createObjectURL(newImage)]));
+    const newImageUrl = URL.createObjectURL(newImage);
+    setImages(images.concat([newImageUrl]));
 
     let newPhotos = {
         'sources': formData.photos.sources.concat([mode])
@@ -277,7 +277,7 @@ export default function ItemEditView() {
     if (formData.photos.selected == null) {
         // When no thumbnail has been previously set, create one
         // from the currently added image.
-        newPhotos['thumbnail'] = await makeThumbnail(THUMBNAIL_SIZE, newImage);
+        newPhotos['thumbnail'] = await makeThumbnail(THUMBNAIL_SIZE, newImageUrl);
         newPhotos['selected'] = images.length;
     }
     else {
