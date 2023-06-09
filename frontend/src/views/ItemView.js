@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigation, useNavigate, useParams } from "react-router-dom";
 
 import {loadItem, archiveItem, loadItemImage} from '../services/backend';
+import { setSearchFilter } from '../services/store';
 
 import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
@@ -40,9 +41,13 @@ export default function ItemView() {
   const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
   const [selectedImage, setSelectedImage] = React.useState('');
   const token = useSelector((state) => state.global.token);
+
   const { id } = useParams();
+
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const navigate = useNavigate();
+
 
   if (error) {
     throw error;
@@ -92,6 +97,24 @@ export default function ItemView() {
         setOpen(false);
    };
 
+   const onTag = (tagName) => () => {
+        let filters = [{type:'t', term:tagName}];
+        dispatch(setSearchFilter(filters));
+        navigate({
+            pathname: '/',
+            search: `?search=t.${tagName}`,
+        })
+   };
+
+   const onLocation = (locationName) => () => {
+        let filters = [{type:'l', term:locationName}];
+        dispatch(setSearchFilter(filters));
+        navigate({
+            pathname: '/',
+            search: `?search=l.${locationName}`,
+        })
+   };
+
   return(
   <React.Fragment>
 
@@ -123,7 +146,7 @@ export default function ItemView() {
        {/*--------------------------------------------- Tags ------- */}
        <Stack direction="row" spacing={1}>
             {item.tags?.map(tag =>
-                <Chip key={item.id+ '_t_' + tag.name} label={tag.name} variant="outlined"/>
+                <Chip key={item.id+ '_t_' + tag.name} label={tag.name}  onClick={onTag(tag.name)}  color="primary"/>
             )}
        </Stack>
 
@@ -218,7 +241,7 @@ export default function ItemView() {
        </Typography>
        <Stack direction="row" spacing={1}>
             {item.locations?.map(location =>
-                <Chip key={item.id+'_l_' + location.name} label={location.name} variant="outlined"/>
+                <Chip key={item.id+'_l_' + location.name} label={location.name} onClick={onLocation(location.name)} color="success"/>
             )}
        </Stack>
 

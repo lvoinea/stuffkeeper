@@ -28,6 +28,7 @@ export default function Items() {
   const token = useSelector((state) => state.global.token);
   const scrollPosition = useSelector((state) => state.global.itemsY);
   const currentItem = useSelector((state) => state.global.selectedItem);
+  const searchFilter = useSelector((state) => state.global.searchFilter);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -76,6 +77,38 @@ export default function Items() {
     navigate(`/items/${addedItem.id}/edit`);
   }
 
+  const isVisible = (item) => {
+    let visible = item.is_active
+    const itemName = item.name.toLowerCase()
+    for(let i=0; i<searchFilter.length; i++){
+        const filter = searchFilter[i]
+        // Check name
+        if (filter.type === 'n'){
+            visible = visible && (itemName.search(filter.term) >= 0)
+        }
+        // Check tags
+        else if (filter.type === 't'){
+            let visibleTag = false;
+            for(let j=0; j<item.tags.length; j++){
+                visibleTag = visibleTag || (item.tags[j].name === filter.term);
+                if (visibleTag) break;
+            }
+            visible = visible && visibleTag;
+        }
+        // Check location
+        else if (filter.type === 'l'){
+            let visibleLocation = false;
+            for(let j=0; j<item.locations.length; j++){
+                visibleLocation = visibleLocation || (item.locations[j].name === filter.term);
+                if (visibleLocation) break;
+            }
+            visible = visible && visibleLocation;
+        }
+        if (!visible) break;
+    }
+    return visible
+  }
+
   return(
     <React.Fragment>
 
@@ -89,7 +122,7 @@ export default function Items() {
 
     {/*------------------------------------------- List of items ----------*/}
     <List sx={{ width: '100%' }}>
-        {items.map(item => item.is_active &&
+        {items.map(item => isVisible(item) &&
           <React.Fragment key={item.id}>
           <ListItem disablePadding>
             <ListItemButton role={undefined} onClick={handleSelectItem(item)}

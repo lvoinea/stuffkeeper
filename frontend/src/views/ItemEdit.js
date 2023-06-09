@@ -364,8 +364,9 @@ export default function ItemEditView() {
             }}
             inputValue = {inputTag}
             onInputChange={(event, newValue) => {
-                const candidateValue = newValue.trim();
+                let candidateValue = newValue.trim();
                 if (newValue !== candidateValue) {
+                    candidateValue = candidateValue.toLowerCase();
                     if ((candidateValue !== '') && (!checkTag(candidateValue, formData.tags))) {
                         const selectedTags = formData.tags.concat({name: candidateValue});
                         setFormData({field: 'tags', value: selectedTags});

@@ -1,8 +1,8 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useCallback} from 'react';
 import { useDispatch, useSelector } from 'react-redux'
-import { Outlet, useNavigate, useMatch } from "react-router-dom";
+import { Outlet, useNavigate, useMatch, useSearchParams } from "react-router-dom";
 
-import { styled, alpha } from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
@@ -11,15 +11,17 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import InputAdornment from "@mui/material/InputAdornment";
+import InputBase from '@mui/material/InputBase';
+import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import Typography from '@mui/material/Typography';
-import InputBase from '@mui/material/InputBase';
-import IconButton from '@mui/material/IconButton';
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ClearIcon from '@mui/icons-material/Clear';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import MoreIcon from '@mui/icons-material/MoreVert';
@@ -28,61 +30,48 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import SignIn from './SignIn';
 
 import {getTags, getLocations} from '../services/backend';
-import {setTags, setLocations} from '../services/store';
+import {setTags, setLocations, setSearchFilter} from '../services/store';
 
-const Search = styled('div')(({ theme }) => ({
-  position: 'relative',
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
-  '&:hover': {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
-  },
-  marginRight: theme.spacing(2),
-  marginLeft: 0,
-  width: '100%',
-  [theme.breakpoints.up('sm')]: {
-    marginLeft: theme.spacing(3),
-    width: 'auto',
-  },
-}));
-
-const SearchIconWrapper = styled('div')(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: '100%',
-  position: 'absolute',
-  pointerEvents: 'none',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: 'inherit',
-  '& .MuiInputBase-input': {
-    padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create('width'),
-    width: '100%',
-    [theme.breakpoints.up('md')]: {
-      width: '20ch',
-    },
-  },
-}));
 
 export default function Root() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [drawer, setDrawer] = React.useState(false);
+  const [searchStr, setSearchStr] = React.useState('');
 
   const currentItem = useSelector((state) => state.global.selectedItem);
   const token = useSelector((state) => state.global.token);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const matchRoot = useMatch('/');
   const matchItemView = useMatch('/items/:item');
   const matchItemEdit = useMatch('/items/:item/edit');
+
+  const computeFilters = useCallback((searchText) => () => {
+    let filters = [];
+    const searchTerms = searchText.toLowerCase().split(',');
+    for(let i=0; i< searchTerms.length; i++){
+        const term = searchTerms[i].trim();
+        if (term.length > 2) {
+            if (term[1] === '.') {
+               if (['t','l','n'].includes(term[0])) {
+                   filters.push({
+                        type: term[0],
+                        term: term.substr(2).trim()
+                   })
+               }
+            } else {
+               filters.push({
+                    type: 'n',
+                    term: term
+               });
+            }
+        }
+    }
+    dispatch(setSearchFilter(filters));
+  });
 
   useEffect(()=>{
     async function fetchData() {
@@ -94,9 +83,14 @@ export default function Root() {
         let locations = await getLocations({token});
         locations = locations.map((location) => { return { name: location.name}});
         dispatch(setLocations(locations));
+        const searchText = searchParams.get('search');
+        if (searchText) {
+            setSearchStr(searchText);
+            computeFilters(searchText)();
+        }
     };
     fetchData();
-  },[token, dispatch]);
+  },[token, dispatch, searchParams, computeFilters]);
 
   const toggleDrawer = (open) => (event) => {
     if (
@@ -126,6 +120,25 @@ export default function Root() {
   const handleClose = async () => {
     navigate(-1);
   };
+
+  const onSearch = async (event) => {
+    setSearchStr(event.target.value);
+    setSearchParams([]);
+  };
+
+  const onKeyDown = (e) => {
+      if(e.keyCode === 13){
+        computeFilters(searchStr)();
+      }
+  };
+
+  const clearSearch = () => {
+    setSearchStr('');
+    computeFilters('')();
+    setSearchParams([]);
+  };
+
+
 
   const menuId = 'toolbar-menu';
   const renderMenu = (
@@ -182,15 +195,43 @@ export default function Root() {
 
           {/* ---------------------------------------------- Search ------------ */}
           { matchRoot && (
-              <Search>
-                <SearchIconWrapper>
-                  <SearchIcon />
-                </SearchIconWrapper>
-                <StyledInputBase
-                  placeholder="Search…"
-                  inputProps={{ 'aria-label': 'search' }}
-                />
-              </Search>
+
+          <InputBase
+
+            label="Search"
+            value={searchStr}
+            onChange={onSearch}
+            onKeyDown={onKeyDown}
+            onBlur={computeFilters(searchStr)}
+            sx={{
+                width: '100%',
+                color: 'white',
+                backgroundColor: (theme) => alpha(theme.palette.common.white, 0.15),
+                borderRadius: 2,
+                marginRight: '10px',
+            }}
+            size='medium'
+            variant='standard'
+            startAdornment={(
+                <InputAdornment position="start">
+                  <SearchIcon
+                        sx={{
+                            color:'white',
+                            padding: (theme) => theme.spacing(0, 0.5)
+                        }}/>
+                </InputAdornment>
+            )}
+            endAdornment={(
+                <InputAdornment position="end">
+                  <ClearIcon onClick={clearSearch}
+                        sx={{
+                          color:'white',
+                          padding: (theme) => theme.spacing(0, 0.5),
+                       }}/>
+                </InputAdornment>
+            )}
+          />
+
           )}
 
           {/* ---------------------------------------------- Item name --------- */}
