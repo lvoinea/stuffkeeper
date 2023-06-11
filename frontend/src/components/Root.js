@@ -26,6 +26,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import MenuIcon from '@mui/icons-material/Menu';
 import MoreIcon from '@mui/icons-material/MoreVert';
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import SearchIcon from '@mui/icons-material/Search';
 
 import SignIn from './SignIn';
@@ -49,6 +50,7 @@ export default function Root() {
   const matchRoot = useMatch('/');
   const matchItemView = useMatch('/items/:item');
   const matchItemEdit = useMatch('/items/:item/edit');
+  const matchStats = useMatch('/stats');
 
   const computeFilters = useCallback((searchText) => () => {
     let filters = [];
@@ -143,6 +145,10 @@ export default function Root() {
        dispatch(setItemCategory(category));
        navigate('/');
   };
+
+  const onStats = () => {
+    navigate('/stats');
+  }
 
   const menuId = 'toolbar-menu';
   const renderMenu = (
@@ -245,10 +251,17 @@ export default function Root() {
             </Typography>
           )}
 
+          {/* ---------------------------------------------- Stats ------------- */}
+          { (matchStats) && (
+            <Typography sx={{ display: 'inline' }} component="span" variant="h6">
+                Statistics
+            </Typography>
+          )}
+
            <Box sx={{ flexGrow: 1 }} />
 
           {/* ---------------------------------------------- Menu -------------- */}
-          { matchRoot && (
+          { (matchRoot || matchStats)&& (
               <Box sx={{ display: { xs: 'flex', md: 'flex' } }}>
                 <IconButton
                   size="large"
@@ -315,6 +328,19 @@ export default function Root() {
                     <InventoryIcon />
                   </ListItemIcon>
                   <ListItemText primary='Archive' />
+                </ListItemButton>
+            </ListItem>
+
+          </List>
+          <Divider />
+          <List>
+
+            <ListItem key='Stats' disablePadding>
+                <ListItemButton onClick={onStats}>
+                  <ListItemIcon>
+                    <QueryStatsIcon />
+                  </ListItemIcon>
+                  <ListItemText primary='Stats' />
                 </ListItemButton>
             </ListItem>
 

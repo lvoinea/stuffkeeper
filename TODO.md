@@ -2,10 +2,9 @@
 
 ## Yes
 
-- Mark archived items
-- Add archive view
-
 - Add bookmarking and view
+
+- Add stats page
 
 - Add multi edit (delete/archive)
 - Add sort options
@@ -22,6 +21,8 @@ items before removing the object from the DB.
 
 ## Done
 
+- Mark archived items
+- Add archive view
 - Add searching
 - Add new item
 - Add image editing
