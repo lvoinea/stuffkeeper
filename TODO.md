@@ -2,11 +2,10 @@
 
 ## Yes
 
-- Add searching
-
-- Add bookmarking
 - Mark archived items
 - Add archive view
+
+- Add bookmarking and view
 
 - Add multi edit (delete/archive)
 - Add sort options
@@ -22,6 +21,8 @@ This should remove the tag/location from all associated
 items before removing the object from the DB.
 
 ## Done
+
+- Add searching
 - Add new item
 - Add image editing
   - Add the carousel as well

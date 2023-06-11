@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigation, useNavigate, useParams } from "react-router-dom";
 
-import {loadItem, archiveItem, loadItemImage} from '../services/backend';
+import {loadItem, archiveItem, deleteItem, loadItemImage} from '../services/backend';
 import { setSearchFilter } from '../services/store';
 
 import Backdrop from '@mui/material/Backdrop';
@@ -20,14 +20,15 @@ import Typography from '@mui/material/Typography';
 
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import InventoryIcon from '@mui/icons-material/Inventory';
 import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutlined';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import UnarchiveIcon from '@mui/icons-material/Unarchive';
 
 import GlobalLoading from '../components/GlobalLoading';
-
 
 export default function ItemView() {
 
@@ -40,7 +41,9 @@ export default function ItemView() {
   const [open, setOpen] = React.useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
   const [selectedImage, setSelectedImage] = React.useState('');
+
   const token = useSelector((state) => state.global.token);
+  const itemCategory = useSelector((state) => state.global.itemCategory);
 
   const { id } = useParams();
 
@@ -53,7 +56,7 @@ export default function ItemView() {
     throw error;
   }
 
-  const handleEdit = () => {
+  const onEdit = () => {
     navigate('edit');
   };
 
@@ -76,24 +79,52 @@ export default function ItemView() {
     .finally(()=> {setLoading(false)});
   }, [token, id]);
 
-   const handleDelete = async() => {
-     await archiveItem({token, id});
+   const onArchive = async() => {
+     await archiveItem({token, id, active: false});
+     navigate(-1);
+   }
+   
+   const onRestore = async() => {
+     await archiveItem({token, id, active: true});
      navigate(-1);
    }
 
-   const actions = [
-      { icon: <ModeEditOutlineOutlinedIcon />, name: 'Edit', action: handleEdit },
-      { icon: <DeleteIcon sx={{color: "#a10666"}}/>, name: 'Delete', action: handleDelete},
-   ];
+   const onDelete = async() => {
+     await deleteItem({token, id});
+     navigate(-1);
+   }
 
-   const handleOpenZoom = (index) => async () => {
+   let actions = [
+      { icon: <ModeEditOutlineOutlinedIcon />, name: 'Edit', action: onEdit }
+   ];
+   if ((itemCategory === 'active') && (item.is_active)) {
+    actions.push({
+            icon: <InventoryIcon sx={{color: "#a10666"}}/>,
+            name: 'Archive',
+            action: onArchive
+        });
+   }
+   else if ((itemCategory === 'archived') && (!item.is_active)) {
+    actions.push({
+            icon: <UnarchiveIcon sx={{color: "#1f750f"}}/>,
+            name: 'Restore',
+            action: onRestore
+        });
+    actions.push({
+            icon: <DeleteIcon sx={{color: "#b52902"}}/>,
+            name: 'Delete',
+            action: onDelete
+        });
+   }
+
+   const onOpenZoom = (index) => async () => {
         setSelectedImageIndex(index);
         const image = await loadItemImage({token, id, image: item.photos.sources[index] + '.full'});
         setSelectedImage(image);
         setOpen(true);
    }
 
-   const handleCloseZoom = () => {
+   const onCloseZoom = () => {
         setOpen(false);
    };
 
@@ -139,9 +170,16 @@ export default function ItemView() {
             <CircularProgress color="inherit" />
           </Backdrop>
        {/*--------------------------------------------- Name ------- */}
-       <Typography sx={{ display: 'inline' }} component="span" variant="h4" color="text.primary">
-           {item.name}
-       </Typography>
+       <Stack direction="row" justifyContent="center" alignItems="center">
+
+           {(!item.is_active) && (
+                    <InventoryIcon sx={{ marginRight: '10px',  opacity: 0.3}}/>
+            )}
+
+           <Typography sx={{ display: 'inline' }} component="span" variant="h4" color="text.primary">
+               {item.name}
+           </Typography>
+       </Stack>
 
        {/*--------------------------------------------- Tags ------- */}
        <Stack direction="row" spacing={1}>
@@ -172,7 +210,7 @@ export default function ItemView() {
                             <img  alt={`${item.name} ${i}`} src={image} style={{width: '100%', height: IMAGE_HEIGHT, objectFit: 'cover'}}/>
 
                             <Fab aria-label="zoom photo"
-                                    onClick={handleOpenZoom(i)}
+                                    onClick={onOpenZoom(i)}
                                     size='small'
                                     sx={{ position: 'absolute', left: '10px', top: '10px', opacity: 0.6}}>
                                     <ZoomInIcon />
@@ -196,7 +234,7 @@ export default function ItemView() {
        {/*-------------------------------------- Zoomed photo -------*/}
        <Modal
             open={open}
-            onClose={handleCloseZoom}
+            onClose={onCloseZoom}
             aria-labelledby="modal-add-photo"
             aria-describedby="modal-take-product-photo">
             <Box sx={{position: 'absolute',
@@ -223,7 +261,7 @@ export default function ItemView() {
 
                   <Fab aria-label="photo used as thumbnail"
                     size='small'
-                    onClick={handleCloseZoom}
+                    onClick={onCloseZoom}
                     sx={{ position: 'absolute', right: '10px', top: '10px', opacity: 0.8}}>
                     <CloseIcon />
                   </Fab>

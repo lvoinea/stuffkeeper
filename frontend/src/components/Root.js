@@ -20,17 +20,18 @@ import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import Typography from '@mui/material/Typography';
 
+import AccountCircle from '@mui/icons-material/AccountCircle';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ClearIcon from '@mui/icons-material/Clear';
+import InventoryIcon from '@mui/icons-material/Inventory';
 import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
 import MoreIcon from '@mui/icons-material/MoreVert';
-import AccountCircle from '@mui/icons-material/AccountCircle';
+import SearchIcon from '@mui/icons-material/Search';
 
 import SignIn from './SignIn';
 
 import {getTags, getLocations} from '../services/backend';
-import {setTags, setLocations, setSearchFilter} from '../services/store';
+import {setTags, setLocations, setItemCategory, setSearchFilter} from '../services/store';
 
 
 export default function Root() {
@@ -138,7 +139,10 @@ export default function Root() {
     setSearchParams([]);
   };
 
-
+  const onSelectItems = (category) => () => {
+       dispatch(setItemCategory(category));
+       navigate('/');
+  };
 
   const menuId = 'toolbar-menu';
   const renderMenu = (
@@ -297,11 +301,20 @@ export default function Root() {
           <List>
 
             <ListItem key='Items' disablePadding>
-                <ListItemButton onClick={() => {navigate('/')}}>
+                <ListItemButton onClick={onSelectItems('active')}>
                   <ListItemIcon>
                     <SearchIcon />
                   </ListItemIcon>
                   <ListItemText primary='Items' />
+                </ListItemButton>
+            </ListItem>
+
+            <ListItem key='Archive' disablePadding>
+                <ListItemButton onClick={onSelectItems('archived')}>
+                  <ListItemIcon>
+                    <InventoryIcon />
+                  </ListItemIcon>
+                  <ListItemText primary='Archive' />
                 </ListItemButton>
             </ListItem>
 

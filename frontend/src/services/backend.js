@@ -43,6 +43,17 @@ const updateCachedItem = (id) => (savedItem) => {
     return savedItem;
 }
 
+const removeCachedItem = (id) => {
+    if (items) {
+        const existingIndex = items.findIndex(record => record.id === parseInt(id));
+        if (existingIndex > -1) {
+            items.splice(existingIndex,1);
+        }
+    }
+}
+
+
+
 export function getItems({token}) {
   if (token) {
     return items? items: fetch(`http://${backendAddress}/users/me/items/`, {
@@ -134,7 +145,7 @@ export function addItem({token, item}) {
   })
 }
 
-export function archiveItem({token, id}) {
+export function archiveItem({token, id, active}) {
   return fetch(`http://${backendAddress}/users/me/items/${id}`, {
     method: 'POST',
     mode: 'cors',
@@ -142,7 +153,7 @@ export function archiveItem({token, id}) {
      'Content-Type': 'application/json',
      'Authorization': `Bearer ${token}`
     },
-    body: JSON.stringify({"is_active": false})
+    body: JSON.stringify({"is_active": active})
   })
   .then(response => {
     if(response.ok) {
@@ -150,6 +161,25 @@ export function archiveItem({token, id}) {
         .then(updateCachedItem(id));
     }
     return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
+  })
+}
+
+export function deleteItem({token, id}) {
+  return fetch(`http://${backendAddress}/users/me/items/${id}`, {
+    method: 'DELETE',
+    mode: 'cors',
+    headers: {
+     'Content-Type': 'application/json',
+     'Authorization': `Bearer ${token}`
+    }
+  })
+  .then(response => {
+    if(response.ok) {
+        return removeCachedItem(id);
+    }
+    else {
+        return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
+    }
   })
 }
 

@@ -2,7 +2,7 @@ import uvicorn
 
 from datetime import date
 
-from fastapi import Depends, FastAPI, HTTPException, status, UploadFile
+from fastapi import Depends, FastAPI, HTTPException, status, UploadFile, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -181,6 +181,26 @@ def update_user_item(
         raise HTTPException(status_code=404, detail="Item not found")
 
     return item_serializable
+
+@app.delete("/users/me/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT, responses={404: {"description": "Item not found"}})
+def delete_user_item(
+        item_id: int,
+        db: Session = Depends(get_db),
+        current_user_db: schemas.User = Depends(get_current_active_user)):
+    """Delete a specific item associated with the current user."""
+
+    current_user_id = current_user_db.id
+
+    try:
+        crud.delete_user_item(db=db, item_id=item_id, user_id=current_user_id)
+    except crud.DbExceptionNotFound:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@app.post("/items/", status_code=201)
+async def create_item(name: str):
+    return {"name": name}
 
 #---------------------------------------------------- Images
 

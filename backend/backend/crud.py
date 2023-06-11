@@ -168,6 +168,26 @@ def update_user_item(db: Session, item_id: int, item: schemas.ItemUpdate, user_i
     db.refresh(db_item)
     return db_item
 
+def delete_user_item(db: Session, item_id: int, user_id: int):
+    """Delete an item in the DB associated with a specific user.
+    If the item is not found in the DB, an exception is raised."""
+    db_item = db.query(models.Item).filter(models.Item.owner_id == user_id).filter(models.Item.id == item_id).first()
+    if not db_item:
+        raise DbExceptionNotFound('Item not found')
+
+    # Remove item images
+    photos = json.loads(db_item.photos)
+    for source in photos['sources']:
+        path_id = source.replace('-', '/')
+        file_path = f'./local/photos/{user_id}/{path_id}'
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+            os.remove(f'{file_path}.full')
+            os.remove(f'{file_path}.thumb')
+
+    db.delete(db_item)
+    db.commit()
+
 #------------------------------------------ Tags
 
 def get_user_tags(db: Session, user_id: int):

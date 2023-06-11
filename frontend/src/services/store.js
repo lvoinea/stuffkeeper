@@ -5,6 +5,7 @@ const initialState = {
   selectedItem: {name: null, id: null},
   token: null,
   itemsY: 0,
+  itemCategory: 'active',
   tags: [],
   locations: [],
   searchFilter: ''
@@ -23,6 +24,9 @@ export const globalSlice = createSlice({
     setYItems: (state, action) => {
       state.itemsY = action.payload;
     },
+    setItemCategory: (state, action) => {
+      state.itemCategory = action.payload;
+    },
     setTags: (state, action) => {
       state.tags = action.payload;
     },
@@ -35,7 +39,14 @@ export const globalSlice = createSlice({
   },
 })
 
-export const { setSelectedItem, setToken, setYItems, setTags, setLocations, setSearchFilter } = globalSlice.actions
+export const {
+    setSelectedItem,
+    setToken,
+    setYItems,
+    setItemCategory,
+    setTags,
+    setLocations,
+    setSearchFilter } = globalSlice.actions
 
 export const store = configureStore({
   reducer: {

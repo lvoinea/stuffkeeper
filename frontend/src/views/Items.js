@@ -7,6 +7,7 @@ import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import Fab from '@mui/material/Fab';
+import InventoryIcon from '@mui/icons-material/Inventory';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -27,6 +28,7 @@ export default function Items() {
 
   const token = useSelector((state) => state.global.token);
   const scrollPosition = useSelector((state) => state.global.itemsY);
+  const itemCategory = useSelector((state) => state.global.itemCategory);
   const currentItem = useSelector((state) => state.global.selectedItem);
   const searchFilter = useSelector((state) => state.global.searchFilter);
 
@@ -78,7 +80,9 @@ export default function Items() {
   }
 
   const isVisible = (item) => {
-    let visible = item.is_active
+    let visible = (itemCategory === 'active' && item.is_active) ||
+        (itemCategory === 'archived' && !item.is_active);
+
     const itemName = item.name.toLowerCase()
     for(let i=0; i<searchFilter.length; i++){
         const filter = searchFilter[i]
@@ -138,6 +142,15 @@ export default function Items() {
                   src={getThumbnail(item)}
                   alt={item.name}
                 />
+
+                {(itemCategory === 'archived') && (
+                    <Fab aria-label="arhived"
+                        size='small'
+                        sx={{ position: 'absolute', left: '0px', top: '0px', opacity: 0.8}}>
+                        <InventoryIcon/>
+                    </Fab>
+                )}
+
             </div>
             <Stack direction="column" justifyContent="center" alignItems="flex-start" spacing={0}>
                {/*---------------- Description -----------*/}
