@@ -126,23 +126,23 @@ export default function StatsView() {
 
             {/*--- Number ---*/}
             <Grid xs={4} item={true}>
-                <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
                     Count
                 </Typography>
             </Grid>
             <Grid xs={8} item={true}>
-                <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
                    {stats.nrCurrentItems}
                 </Typography>
             </Grid>
             {/*--- Cost ---*/}
             <Grid xs={4} item={true}>
-                <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
                     Cost
                 </Typography>
             </Grid>
             <Grid xs={8} item={true}>
-                <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
                    {stats.costCurrentItems}
                 </Typography>
             </Grid>
@@ -163,23 +163,23 @@ export default function StatsView() {
             <React.Fragment>
             {/*--- Number ---*/}
             <Grid xs={4} item={true}>
-                <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
                     Count
                 </Typography>
             </Grid>
             <Grid xs={8} item={true}>
-                <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
                    {stats.nrArchivedItems}
                 </Typography>
             </Grid>
             {/*--- Cost ---*/}
             <Grid xs={4} item={true}>
-                <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
                     Cost
                 </Typography>
             </Grid>
             <Grid xs={8} item={true}>
-                <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
                    {stats.costArchivedItems}
                 </Typography>
             </Grid>
@@ -200,12 +200,12 @@ export default function StatsView() {
             <React.Fragment>
             {/*--- Number ---*/}
             <Grid xs={4} item={true}>
-                <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
                     Count
                 </Typography>
             </Grid>
             <Grid xs={8} item={true}>
-                <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
                    {locations.length}
                 </Typography>
             </Grid>
@@ -226,18 +226,18 @@ export default function StatsView() {
             <React.Fragment>
             {/*--- Number ---*/}
             <Grid xs={4} item={true}>
-                <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
                     Count
                 </Typography>
             </Grid>
             <Grid xs={8} item={true}>
-                <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
                    {tags.length}
                 </Typography>
             </Grid>
             {/*---- Top ----*/}
             <Grid xs={4} item={true}>
-                <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
                     Top {(tags.length > TOP_ENTRIES)?TOP_ENTRIES:tags.length}
                 </Typography>
             </Grid>

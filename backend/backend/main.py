@@ -6,6 +6,7 @@ from fastapi import Depends, FastAPI, HTTPException, status, UploadFile, Respons
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 import json
@@ -21,13 +22,14 @@ from backend.database import SessionLocal, engine
 
 #models.Base.metadata.create_all(bind=engine)
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
 
 app = FastAPI()
 
 origins = [
     "http://localhost:3000",
-    "http://192.168.68.133:3000"
+    "http://192.168.68.133:3000",
+    "https://stuffkeeper.technolab.top"
 ]
 
 app.add_middleware(
@@ -37,6 +39,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+api = FastAPI(title="api")
 
 # Database dependency
 def get_db():
@@ -72,7 +76,7 @@ async def get_current_active_user(current_user: schemas.User = Depends(get_curre
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
-@app.post("/token", response_model=schemas.Token)
+@api.post("/token", response_model=schemas.Token)
 async def login_for_access_token(
         db: Session = Depends(get_db),
         form_data: OAuth2PasswordRequestForm = Depends()):
@@ -89,7 +93,7 @@ async def login_for_access_token(
 
 #---------------------------------------------------- Users
 
-@app.post("/users/", response_model=schemas.User)
+@api.post("/users/", response_model=schemas.User)
 def create_user(
         user: schemas.UserCreate,
         db: Session = Depends(get_db)):
@@ -101,7 +105,7 @@ def create_user(
     return new_user_db
 
 
-@app.get("/users/me", response_model=schemas.User)
+@api.get("/users/me", response_model=schemas.User)
 def read_user(current_user_db: schemas.User = Depends(get_current_active_user)):
     """Get the information associated with the current user."""
 
@@ -117,7 +121,7 @@ def create_serializable_item(item_db):
         serializable_item['photos'] = json.loads(serializable_item['photos'])
     return serializable_item
 
-@app.post("/users/me/items/", response_model=schemas.Item)
+@api.post("/users/me/items/", response_model=schemas.Item)
 def create_user_item(
         item: schemas.ItemCreate,
         db: Session = Depends(get_db),
@@ -131,7 +135,7 @@ def create_user_item(
     return item_serializable
 
 
-@app.get("/users/me/items/", response_model=List[schemas.Item])
+@api.get("/users/me/items/", response_model=List[schemas.Item])
 def get_user_items(
         skip: int = 0,
         limit: int = 100,
@@ -147,7 +151,7 @@ def get_user_items(
     return items_serializable
 
 
-@app.get("/users/me/items/{item_id}", response_model=schemas.Item, responses={404: {"description": "Item not found"}})
+@api.get("/users/me/items/{item_id}", response_model=schemas.Item, responses={404: {"description": "Item not found"}})
 def get_user_item(
         item_id: int,
         db: Session = Depends(get_db),
@@ -164,7 +168,7 @@ def get_user_item(
 
     return item_serializable
 
-@app.post("/users/me/items/{item_id}", response_model=schemas.Item, responses={404: {"description": "Item not found"}})
+@api.post("/users/me/items/{item_id}", response_model=schemas.Item, responses={404: {"description": "Item not found"}})
 def update_user_item(
         item_id: int,
         item: schemas.ItemUpdate,
@@ -182,7 +186,7 @@ def update_user_item(
 
     return item_serializable
 
-@app.delete("/users/me/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT, responses={404: {"description": "Item not found"}})
+@api.delete("/users/me/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT, responses={404: {"description": "Item not found"}})
 def delete_user_item(
         item_id: int,
         db: Session = Depends(get_db),
@@ -198,13 +202,13 @@ def delete_user_item(
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@app.post("/items/", status_code=201)
+@api.post("/items/", status_code=201)
 async def create_item(name: str):
     return {"name": name}
 
 #---------------------------------------------------- Images
 
-@app.get("/users/me/items/{item_id}/image/{image_id}", response_class=FileResponse, responses={404: {"description": "Item not found"}})
+@api.get("/users/me/items/{item_id}/image/{image_id}", response_class=FileResponse, responses={404: {"description": "Item not found"}})
 def get_user_item_image(
         item_id: int,
         image_id: str,
@@ -221,7 +225,7 @@ def get_user_item_image(
     else:
         raise HTTPException(status_code=404, detail="Item not found")
 
-@app.post("/users/me/items/{item_id}/image", responses={404: {"description": "Item not found"}})
+@api.post("/users/me/items/{item_id}/image", responses={404: {"description": "Item not found"}})
 def upload_user_image(
         item_id: int,
         mode: str,
@@ -282,7 +286,7 @@ def upload_user_image(
 
 #---------------------------------------------------- Tags
 
-@app.get("/users/me/tags/", response_model=List[schemas.Tag])
+@api.get("/users/me/tags/", response_model=List[schemas.Tag])
 def get_user_tags(
         db: Session = Depends(get_db),
         current_user_db: schemas.User = Depends(get_current_active_user)):
@@ -293,7 +297,7 @@ def get_user_tags(
     tags_db = crud.get_user_tags(db, current_user_id)
     return tags_db
 
-@app.post("/users/me/tags/{tag_id}", response_model=schemas.Tag, responses={404: {"description": "Tag not found"}})
+@api.post("/users/me/tags/{tag_id}", response_model=schemas.Tag, responses={404: {"description": "Tag not found"}})
 def update_user_tag(
         tag_id: int,
         tag: schemas.TagUpdate,
@@ -314,7 +318,7 @@ def update_user_tag(
 
 #---------------------------------------------------- Locations
 
-@app.get("/users/me/locations/", response_model=List[schemas.Location])
+@api.get("/users/me/locations/", response_model=List[schemas.Location])
 def get_user_locations(
         db: Session = Depends(get_db),
         current_user_db: schemas.User = Depends(get_current_active_user)):
@@ -326,7 +330,7 @@ def get_user_locations(
     return locations_db
 
 
-@app.post("/users/me/locations/{location_id}", response_model=schemas.Location, responses={404: {"description": "Location not found"}})
+@api.post("/users/me/locations/{location_id}", response_model=schemas.Location, responses={404: {"description": "Location not found"}})
 def update_user_location(
         location_id: int,
         location: schemas.LocationUpdate,
@@ -344,6 +348,9 @@ def update_user_location(
         raise HTTPException(status_code=422, detail="Location name already exists")
 
     return location_db
+
+app.mount("/api", api)
+app.mount("/", StaticFiles(directory="app",html=True), name="app")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

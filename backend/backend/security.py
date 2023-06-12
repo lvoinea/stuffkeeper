@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta
-from decouple import config
+from decouple import Config, RepositoryEnv
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+
+DOTENV_FILE = './local/.env'
+config = Config(RepositoryEnv(DOTENV_FILE))
 
 SECRET_KEY = config('SECRET_KEY')
 ALGORITHM = config('ALGORITHM', default='HS256')

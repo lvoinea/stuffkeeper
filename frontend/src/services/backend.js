@@ -1,5 +1,9 @@
 
-const backendAddress = '192.168.68.133:8000';
+// Production deployment
+//const backendAddress = 'http://192.168.68.133:8080/api';
+
+//Local deployment
+const backendAddress = 'http://192.168.68.133:8000/api';
 
 //------------------------------------------- Exceptions
 function ApplicationException({code, message}) {
@@ -10,7 +14,7 @@ function ApplicationException({code, message}) {
 //------------------------------------------- Login
 
 export function loginUser({username, password, grant_type, scope, client_id, client_secret}) {
- return fetch(`http://${backendAddress}/token`, {
+ return fetch(`${backendAddress}/token`, {
    method: 'POST',
    mode: 'cors',
    headers: {
@@ -56,7 +60,7 @@ const removeCachedItem = (id) => {
 
 export function getItems({token}) {
   if (token) {
-    return items? items: fetch(`http://${backendAddress}/users/me/items/`, {
+    return items? items: fetch(`${backendAddress}/users/me/items/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -88,7 +92,7 @@ export function loadItem({token, id}) {
         }
     }
     // Fallback on server functionality
-    return fetch(`http://${backendAddress}/users/me/items/${id}`, {
+    return fetch(`${backendAddress}/users/me/items/${id}`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -105,7 +109,7 @@ export function loadItem({token, id}) {
 }
 
 export function saveItem({token, item, id}) {
-  return fetch(`http://${backendAddress}/users/me/items/${id}`, {
+  return fetch(`${backendAddress}/users/me/items/${id}`, {
     method: 'POST',
     mode: 'cors',
     headers: {
@@ -124,7 +128,7 @@ export function saveItem({token, item, id}) {
 }
 
 export function addItem({token, item}) {
-  return fetch(`http://${backendAddress}/users/me/items`, {
+  return fetch(`${backendAddress}/users/me/items`, {
     method: 'POST',
     mode: 'cors',
     headers: {
@@ -146,7 +150,7 @@ export function addItem({token, item}) {
 }
 
 export function archiveItem({token, id, active}) {
-  return fetch(`http://${backendAddress}/users/me/items/${id}`, {
+  return fetch(`${backendAddress}/users/me/items/${id}`, {
     method: 'POST',
     mode: 'cors',
     headers: {
@@ -165,7 +169,7 @@ export function archiveItem({token, id, active}) {
 }
 
 export function deleteItem({token, id}) {
-  return fetch(`http://${backendAddress}/users/me/items/${id}`, {
+  return fetch(`${backendAddress}/users/me/items/${id}`, {
     method: 'DELETE',
     mode: 'cors',
     headers: {
@@ -186,7 +190,7 @@ export function deleteItem({token, id}) {
 //------------------------------------------- Images
 
 export function loadItemImage({token, id, image}) {
-    return fetch(`http://${backendAddress}/users/me/items/${id}/image/${image}`, {
+    return fetch(`${backendAddress}/users/me/items/${id}/image/${image}`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -210,7 +214,7 @@ export async function saveItemImage({token, id, imageUrl, mode}) {
     const formData = new FormData();
     formData.append('file', imageBlob);
 
-    return fetch(`http://${backendAddress}/users/me/items/${id}/image/?mode=${mode}`, {
+    return fetch(`${backendAddress}/users/me/items/${id}/image/?mode=${mode}`, {
         method: 'POST',
         mode: 'cors',
         headers: {
@@ -230,7 +234,7 @@ export async function saveItemImage({token, id, imageUrl, mode}) {
 
 export function getTags({token}) {
   if (token) {
-    return fetch(`http://${backendAddress}/users/me/tags/`, {
+    return fetch(`${backendAddress}/users/me/tags/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -259,7 +263,7 @@ export function checkTag(name, existingTags ) {
 
 export function getLocations({token}) {
   if (token) {
-    return fetch(`http://${backendAddress}/users/me/locations/`, {
+    return fetch(`${backendAddress}/users/me/locations/`, {
         method: 'GET',
         mode: 'cors',
         headers: {

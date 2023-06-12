@@ -22,7 +22,6 @@ function App() {
     dispatch(setToken(stored_token));
   },[dispatch])
 
-
   const router = createBrowserRouter([
   {
     path: "/logout",

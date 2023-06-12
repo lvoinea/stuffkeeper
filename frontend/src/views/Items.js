@@ -17,7 +17,7 @@ import Stack from '@mui/material/Stack';
 
 import AddIcon from '@mui/icons-material/Add';
 
-import {getItems, addItem} from '../services/backend';
+import {getItems, addItem, serverAddress} from '../services/backend';
 import {setSelectedItem, setYItems} from '../services/store';
 
 
@@ -58,7 +58,7 @@ export default function Items() {
     if (item.photos?.thumbnail) {
         return 'data:image/jpeg;base64,' + item.photos.thumbnail;
     } else {
-        // If the thumbnail is not avaiable replace it with a standard image
+        // If the thumbnail is not available replace it with a standard image
         return 'no-image-icon.gif';
     }
   }

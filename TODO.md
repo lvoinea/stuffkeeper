@@ -2,6 +2,8 @@
 
 ## Yes
 
+- Create Docker image and test locally
+
 - Add bookmarking and view
 
 - Add stats page
