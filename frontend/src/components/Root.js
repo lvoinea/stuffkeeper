@@ -24,6 +24,7 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ClearIcon from '@mui/icons-material/Clear';
 import InventoryIcon from '@mui/icons-material/Inventory';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 import MenuIcon from '@mui/icons-material/Menu';
 import MoreIcon from '@mui/icons-material/MoreVert';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
@@ -188,7 +189,7 @@ export default function Root() {
 
   return (
     <React.Fragment>
-    <Box sx={{ flexGrow: 1 }}>
+    <Box sx={{ flexGrow: 1}}>
       <AppBar component="nav" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
 
@@ -316,7 +317,7 @@ export default function Root() {
             <ListItem key='Items' disablePadding>
                 <ListItemButton onClick={onSelectItems('active')}>
                   <ListItemIcon>
-                    <SearchIcon />
+                    <ListAltIcon />
                   </ListItemIcon>
                   <ListItemText primary='Items' />
                 </ListItemButton>
