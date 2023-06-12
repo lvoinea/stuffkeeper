@@ -4,3 +4,4 @@ HOWTO.md
 /frontend/.env
 /tmp/
 /backend/local/
+/backend/app/
