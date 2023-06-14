@@ -1,9 +1,11 @@
 
 // Production deployment
 //const backendAddress = 'http://192.168.68.133:8080/api';
+const backendAddress = 'https://stuffkeeper.technolab.top/api';
+
 
 //Local deployment
-const backendAddress = 'http://192.168.68.133:8000/api';
+//const backendAddress = 'http://192.168.68.133:8000/api';
 
 //------------------------------------------- Exceptions
 function ApplicationException({code, message}) {
