@@ -1,11 +1,12 @@
 
 // Production deployment
-//const backendAddress = 'http://192.168.68.133:8080/api';
-const backendAddress = 'https://stuffkeeper.technolab.top/api';
+//const backendAddress = 'https://stuffkeeper.technolab.top/api';
 
+//Local Docker
+//const backendAddress = 'http://192.168.68.133:8080/api';
 
 //Local deployment
-//const backendAddress = 'http://192.168.68.133:8000/api';
+const backendAddress = 'http://192.168.68.133:8000/api';
 
 //------------------------------------------- Exceptions
 function ApplicationException({code, message}) {
@@ -130,7 +131,7 @@ export function saveItem({token, item, id}) {
 }
 
 export function addItem({token, item}) {
-  return fetch(`${backendAddress}/users/me/items`, {
+  return fetch(`${backendAddress}/users/me/items/`, {
     method: 'POST',
     mode: 'cors',
     headers: {
@@ -216,7 +217,7 @@ export async function saveItemImage({token, id, imageUrl, mode}) {
     const formData = new FormData();
     formData.append('file', imageBlob);
 
-    return fetch(`${backendAddress}/users/me/items/${id}/image/?mode=${mode}`, {
+    return fetch(`${backendAddress}/users/me/items/${id}/image?mode=${mode}`, {
         method: 'POST',
         mode: 'cors',
         headers: {

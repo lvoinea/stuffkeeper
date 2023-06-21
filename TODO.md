@@ -2,11 +2,15 @@
 
 ## Yes
 
-- Create Docker image and test locally
+- Add loading indicator for images.
+- Propagate error when failing to upload image.
+- Clean cache upon login/logout
+
+- Document deployment procedure in gdrive
+- Update the readme
 
 - Add bookmarking and view
 
-- Add stats page
 
 - Add multi edit (delete/archive)
 - Add sort options
@@ -23,6 +27,11 @@ items before removing the object from the DB.
 
 ## Done
 
+- Add logo to the login screen
+- Increase life of token to 5h
+- Split the description on lines
+- Create Docker image and test locally
+- Add stats page
 - Mark archived items
 - Add archive view
 - Add searching

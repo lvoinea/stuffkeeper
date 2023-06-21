@@ -17,7 +17,7 @@ import Stack from '@mui/material/Stack';
 
 import AddIcon from '@mui/icons-material/Add';
 
-import {getItems, addItem, serverAddress} from '../services/backend';
+import {getItems, addItem } from '../services/backend';
 import {setSelectedItem, setYItems} from '../services/store';
 
 
@@ -65,7 +65,7 @@ export default function Items() {
 
   const onAddItem = async () => {
     const newItem = {
-      "name": "New Item",
+      "name": "",
       "description": "",
       "quantity": 1,
       "cost": 0,

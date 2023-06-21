@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { useNavigation, useNavigate, useParams } from "react-router-dom";
 
 import {loadItem, archiveItem, deleteItem, loadItemImage} from '../services/backend';
-import { setSearchFilter } from '../services/store';
+import { filter2search} from '../services/utils';
 
 import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
@@ -44,10 +44,10 @@ export default function ItemView() {
 
   const token = useSelector((state) => state.global.token);
   const itemCategory = useSelector((state) => state.global.itemCategory);
+  const searchFilter = useSelector((state) => state.global.searchFilter);
 
   const { id } = useParams();
 
-  const dispatch = useDispatch();
   const navigation = useNavigation();
   const navigate = useNavigate();
 
@@ -129,20 +129,24 @@ export default function ItemView() {
    };
 
    const onTag = (tagName) => () => {
-        let filters = [{type:'t', term:tagName}];
-        dispatch(setSearchFilter(filters));
+        let searchText = filter2search(searchFilter);
+        if (searchText !== '') {
+            searchText = `${searchText},`;
+        }
         navigate({
             pathname: '/',
-            search: `?search=t.${tagName}`,
+            search: `?search=${searchText} t.${tagName}`,
         })
    };
 
    const onLocation = (locationName) => () => {
-        let filters = [{type:'l', term:locationName}];
-        dispatch(setSearchFilter(filters));
+        let searchText = filter2search(searchFilter);
+        if (searchText !== '') {
+            searchText = `${searchText},`;
+        }
         navigate({
             pathname: '/',
-            search: `?search=l.${locationName}`,
+            search: `?search=${searchText} l.${locationName}`,
         })
    };
 
@@ -269,10 +273,11 @@ export default function ItemView() {
             </Box>
        </Modal>
        {/*-------------------------------------- Description ------- */}
-       <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
-           {item.description}
-       </Typography>
-
+       {item.description?.split('\n').map((line,index)=>
+            <Typography key={index} sx={{ display: 'inline', marginTop: 0, paddingLeft: '5px' }} component="span" variant="body1" color="text.primary" align="justify">
+                {line}
+            </Typography>
+       )}
        {/*-------------------------------------- Locations  -------- */}
        <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
            Location
@@ -312,7 +317,7 @@ export default function ItemView() {
           </Grid>
           <Grid xs={8} item={true}>
                <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary">
-                   {item.cost}
+                   {item.cost} EUR
                </Typography>
           </Grid>
           </React.Fragment>

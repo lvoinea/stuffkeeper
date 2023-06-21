@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 
 import { alpha } from "@mui/material";
@@ -17,7 +17,6 @@ import Typography from '@mui/material/Typography';
 import GlobalLoading from '../components/GlobalLoading';
 
 import {getItems } from '../services/backend';
-import { setSearchFilter } from '../services/store';
 
 const TOP_ENTRIES=10;
 
@@ -38,7 +37,6 @@ export default function StatsView() {
   const locations = useSelector((state) => state.global.locations);
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   useEffect(() => {
     async function fetchData() {
@@ -92,8 +90,6 @@ export default function StatsView() {
   }, [token, tags, locations]);
 
   const onTag = (tagName) => () => {
-    let filters = [{type:'t', term:tagName}];
-    dispatch(setSearchFilter(filters));
     navigate({
         pathname: '/',
         search: `?search=t.${tagName}`,
@@ -143,7 +139,7 @@ export default function StatsView() {
             </Grid>
             <Grid xs={8} item={true}>
                 <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
-                   {stats.costCurrentItems}
+                   {stats.costCurrentItems} EUR
                 </Typography>
             </Grid>
             {/*-------------*/}
@@ -180,7 +176,7 @@ export default function StatsView() {
             </Grid>
             <Grid xs={8} item={true}>
                 <Typography sx={{ display: 'inline' }} component="span" variant="body1" color="text.primary" align="justify">
-                   {stats.costArchivedItems}
+                   {stats.costArchivedItems} EUR
                 </Typography>
             </Grid>
             {/*-------------*/}

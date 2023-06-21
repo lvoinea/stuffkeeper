@@ -5,3 +5,8 @@ export function blobToDataUrl(blob) {
 export function delay(delayInms) {
   return new Promise(resolve => setTimeout(resolve, delayInms));
 }
+
+export function filter2search(filters) {
+    const searchText = filters.map(filter => `${filter.type}.${filter.term}`).join(', ');
+    return searchText;
+}
