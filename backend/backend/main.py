@@ -138,7 +138,7 @@ def create_user_item(
 @api.get("/users/me/items/", response_model=List[schemas.Item])
 def get_user_items(
         skip: int = 0,
-        limit: int = 100,
+        limit: int = 10000,
         db: Session = Depends(get_db),
         current_user_db: schemas.User = Depends(get_current_active_user)):
     """Get the items associated with the current user."""

@@ -82,7 +82,7 @@ def get_user_item(db: Session, user_id: int, item_id: int):
         raise DbExceptionNotFound('Item not found')
     return db_item
 
-def get_user_items(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+def get_user_items(db: Session, user_id: int, skip: int = 0, limit: int = 10000):
     """Get the items associated with a user.
     An offset and a limit can be given, to facilitate implementing paging by clients.
     If no items are found an empty list is returned.

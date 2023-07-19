@@ -15,7 +15,7 @@ export default function GlobalLoading() {
         <Box style={{position: 'absolute', transform: 'translate(-50%)',
               top: '50%',
               left: '50%'}}>
-            <CircularProgress color="inherit" />
+            <CircularProgress color="inherit" thickness={8} />
         </Box>
     )}
 

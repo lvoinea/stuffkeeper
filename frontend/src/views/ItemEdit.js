@@ -113,6 +113,7 @@ export default function ItemEditView() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
+
   if (error) {
     throw error;
   }
@@ -168,6 +169,7 @@ export default function ItemEditView() {
     }
     if (needsSaving){
         setIsSaving(true);
+        setLoading(true);
 
         // Check whether there are new photos to save (i.e., source is SD_PHOTO or HD_PHOTO)
         // and save them. For each saved source, retrieve the id as reported by
@@ -196,6 +198,7 @@ export default function ItemEditView() {
         }
 
         setIsSaving(false);
+        setLoading(false);
         navigate(-1);
     }
   }
@@ -345,7 +348,7 @@ export default function ItemEditView() {
             sx={{ color: '#2c5585', backgroundColor: 'rgba(0, 0, 0, 0.1);', zIndex: (theme) => theme.zIndex.drawer + 1 }}
             open={loading}
           >
-            <CircularProgress color="inherit" />
+            <CircularProgress color="inherit" thickness={8} />
           </Backdrop>
 
 

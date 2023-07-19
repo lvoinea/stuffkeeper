@@ -61,8 +61,8 @@ export default function SignIn() {
             alignItems: 'center',
           }}
         >
-
           <img src="/logo192.png" alt="StuffKeeper Logo"/>
+          <div>v1.1</div>
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
               margin="normal"

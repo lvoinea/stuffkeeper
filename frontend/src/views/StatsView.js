@@ -106,7 +106,7 @@ export default function StatsView() {
         sx={{ color: '#2c5585', backgroundColor: 'rgba(0, 0, 0, 0.1);', zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={loading}
     >
-        <CircularProgress color="inherit" />
+        <CircularProgress color="inherit" thickness={8} />
     </Backdrop>
 
     {/*--------------------------- Active Items ------------- */}

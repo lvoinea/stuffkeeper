@@ -2,7 +2,6 @@
 
 ## Yes
 
-- Add loading indicator for images.
 - Propagate error when failing to upload image.
 - Clean cache upon login/logout
 
@@ -27,6 +26,7 @@ items before removing the object from the DB.
 
 ## Done
 
+- Add loading indicator for images.
 - Add logo to the login screen
 - Increase life of token to 5h
 - Split the description on lines
