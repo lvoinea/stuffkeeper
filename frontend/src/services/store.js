@@ -8,7 +8,7 @@ const initialState = {
   itemCategory: 'active',
   tags: [],
   locations: [],
-  searchFilter: ''
+  searchFilter: []
 }
 
 export const globalSlice = createSlice({
