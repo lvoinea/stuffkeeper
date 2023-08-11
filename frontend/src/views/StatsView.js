@@ -23,7 +23,7 @@ import GlobalLoading from '../components/GlobalLoading';
 import {getItems } from '../services/backend';
 
 const TOP_ENTRIES = 10;
-const BAR_LENGTH = 120;
+const BAR_LENGTH = 90;
 
 const tagPieChartOptions = {
   sliceVisibilityThreshold: 0.1,
@@ -37,19 +37,27 @@ const locationPieChartOptions = {
   legend: {position: 'bottom'}
 };
 
+const capPercentage = (percentage) => {
+    return percentage > 1 ? 1: percentage;
+}
+
+const makeCleanState = () => {
+    return {
+        nrCurrentItems: 0,
+        costCurrentItems: 0,
+        nrArchivedItems: 0,
+        costArchivedItems: 0,
+        topTags: [],
+        topLocations: [],
+        maxTagMetric: 0,
+        maxLocationMetric: 0
+    }
+}
+
 export default function StatsView() {
 
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState({
-    nrCurrentItems: 0,
-    costCurrentItems: 0,
-    nrArchivedItems: 0,
-    costArchivedItems: 0,
-    topTags: [],
-    topLocations: [],
-    maxTagMetric: 0,
-    maxLocationMetric: 0
-  });
+  const [stats, setStats] = useState(makeCleanState());
 
   const [tagMetric, setTagMetric] = React.useState('cost');
   const [tagFilter, setTagFilter] = React.useState('top 10');
@@ -71,16 +79,7 @@ export default function StatsView() {
     async function fetchData() {
         const l_items = await getItems({token});
 
-        let l_stats = {
-            nrCurrentItems: 0,
-            costCurrentItems: 0,
-            nrArchivedItems: 0,
-            costArchivedItems: 0,
-            topTags: [],
-            topLocations: [],
-            maxTagMetric: 0,
-            maxLocationMetric: 0,
-        }
+        let l_stats = makeCleanState();
 
         // Basic metrics
         for(let i=0; i<l_items.length; i++){
@@ -96,10 +95,10 @@ export default function StatsView() {
 
         // Top tags
         let l_tags = {};
-        tags.forEach(tag => {l_tags[tag.name] = {count: 0, cost: 0}});
         for(let i=0; i<l_items.length; i++){
             for(let j=0; j<l_items[i].tags.length; j++){
                 let tagName = l_items[i].tags[j].name
+                l_tags[tagName] = l_tags[tagName] || {count: 0, cost: 0}
                 l_tags[tagName].count += 1
                 l_tags[tagName].cost += l_items[i].cost
             }
@@ -114,10 +113,10 @@ export default function StatsView() {
 
         // Top locations
         let l_locations = {};
-        locations.forEach(location => {l_locations[location.name] = {count: 0, cost: 0}});
         for(let i=0; i<l_items.length; i++){
             for(let j=0; j<l_items[i].locations.length; j++){
                 let locationName = l_items[i].locations[j].name
+                l_locations[locationName] = l_locations[locationName] || {count: 0, cost: 0};
                 l_locations[locationName].count += 1
                 l_locations[locationName].cost += l_items[i].cost
             }
@@ -326,16 +325,16 @@ export default function StatsView() {
                 {/*---------- Tags on cost -- */}
                 {(tagMetric === 'cost') &&
                     <React.Fragment>
-                    <div
+                    <span
                         style={{
-                            width: tag.cost * BAR_LENGTH / stats.maxTagMetric,
+                            width: capPercentage(tag.cost / stats.maxTagMetric) * BAR_LENGTH,
                             backgroundColor: alpha('#16649c', 0.15),
                             borderRadius: '5px',
                             paddingLeft: 5,
                             margin: 1
                         }}>
 
-                    </ div>
+                    </ span>
                     <Typography sx={{ display: 'inline' , paddingLeft: '10px'}} component="span" variant="body1" color="text.primary" align="justify">
                         {tag.cost}  &#8364;
                     </Typography>
@@ -344,16 +343,16 @@ export default function StatsView() {
                 {/*---------- Tags on count -- */}
                 {(tagMetric === 'count') &&
                     <React.Fragment>
-                    <div
+                    <span
                         style={{
-                            width: tag.count * BAR_LENGTH / stats.maxTagMetric,
+                            width: capPercentage( tag.count / stats.maxTagMetric) * BAR_LENGTH ,
                             backgroundColor: alpha('#16649c', 0.15),
                             borderRadius: '5px',
                             paddingLeft: 5,
                             margin: 1
                         }}>
 
-                    </ div>
+                    </ span>
                     <Typography sx={{ display: 'inline' , paddingLeft: '10px'}} component="span" variant="body1" color="text.primary" align="justify">
                         {tag.count}
                     </Typography>
@@ -423,16 +422,16 @@ export default function StatsView() {
                 {/*---------- Locations on cost -- */}
                 {(locationMetric === 'cost') &&
                     <React.Fragment>
-                    <div
+                    <span
                         style={{
-                            width: location.cost * BAR_LENGTH / stats.maxLocationMetric,
+                            width: capPercentage (location.cost / stats.maxLocationMetric) * BAR_LENGTH,
                             backgroundColor: alpha('#16649c', 0.15),
                             borderRadius: '5px',
                             paddingLeft: 5,
                             margin: 1
                         }}>
 
-                    </ div>
+                    </ span>
                     <Typography sx={{ display: 'inline' , paddingLeft: '10px'}} component="span" variant="body1" color="text.primary" align="justify">
                         {location.cost} &#8364;
                     </Typography>
@@ -441,16 +440,16 @@ export default function StatsView() {
                 {/*---------- Locations on count -- */}
                 {(locationMetric === 'count') &&
                     <React.Fragment>
-                    <div
+                    <span
                         style={{
-                            width: location.count * BAR_LENGTH / stats.maxLocationMetric,
+                            width: capPercentage( location.count / stats.maxLocationMetric) * BAR_LENGTH,
                             backgroundColor: alpha('#16649c', 0.15),
                             borderRadius: '5px',
                             paddingLeft: 5,
                             margin: 1
                         }}>
 
-                    </ div>
+                    </ span>
                     <Typography sx={{ display: 'inline' , paddingLeft: '10px'}} component="span" variant="body1" color="text.primary" align="justify">
                         {location.count}
                     </Typography>
