@@ -8,7 +8,8 @@ const initialState = {
   itemCategory: 'active',
   tags: [],
   locations: [],
-  searchFilter: []
+  searchFilter: [],
+  visibleStats: {count: 0, cost: 0}
 }
 
 export const globalSlice = createSlice({
@@ -35,6 +36,9 @@ export const globalSlice = createSlice({
     },
     setSearchFilter: (state, action) => {
       state.searchFilter = action.payload;
+    },
+    setVisibleStats: (state, action) => {
+      state.visibleStats = action.payload;
     }
   },
 })
@@ -46,7 +50,8 @@ export const {
     setItemCategory,
     setTags,
     setLocations,
-    setSearchFilter } = globalSlice.actions
+    setSearchFilter,
+    setVisibleStats } = globalSlice.actions
 
 export const store = configureStore({
   reducer: {

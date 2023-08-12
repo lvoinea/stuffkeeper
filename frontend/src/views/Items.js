@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 
@@ -18,7 +18,7 @@ import Stack from '@mui/material/Stack';
 import AddIcon from '@mui/icons-material/Add';
 
 import {getItems, addItem } from '../services/backend';
-import {setSelectedItem, setYItems} from '../services/store';
+import {setSelectedItem, setYItems, setVisibleStats} from '../services/store';
 
 
 export default function Items() {
@@ -40,19 +40,6 @@ export default function Items() {
     dispatch(setYItems(window.pageYOffset));
     navigate(`/items/${item.id}`);
   };
-
-  useEffect(() => {
-    async function fetchData() {
-        const items = await getItems({token});
-        setItems(items);
-        setTimeout(() => {
-            window.scrollTo(0, scrollPosition);
-        });
-    };
-    setLoading(true);
-    fetchData()
-    .finally(()=> {setLoading(false)});
-  }, [token, scrollPosition]);
 
   const getThumbnail = (item) => {
     if (item.photos?.thumbnail) {
@@ -79,7 +66,7 @@ export default function Items() {
     navigate(`/items/${addedItem.id}/edit`);
   }
 
-  const isVisible = (item) => {
+  const isVisible = useCallback((item) => {
     let visible = (itemCategory === 'active' && item.is_active) ||
         (itemCategory === 'archived' && !item.is_active);
 
@@ -111,7 +98,28 @@ export default function Items() {
         if (!visible) break;
     }
     return visible
-  }
+  }, [itemCategory, searchFilter]);
+
+  useEffect(() => {
+    async function fetchData() {
+        const items = await getItems({token});
+        setItems(items);
+        setTimeout(() => {
+            window.scrollTo(0, scrollPosition);
+        });
+        let stats = {count: 0, cost: 0}
+        items.forEach(item => {
+            if (isVisible(item)) {
+                stats.count += 1;
+                stats.cost += item.cost;
+            }
+        });
+        dispatch(setVisibleStats(stats));
+    };
+    setLoading(true);
+    fetchData()
+    .finally(()=> {setLoading(false)});
+  }, [token, scrollPosition, isVisible]);
 
   return(
     <React.Fragment>

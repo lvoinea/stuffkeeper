@@ -21,12 +21,14 @@ import Menu from '@mui/material/Menu';
 import Typography from '@mui/material/Typography';
 
 import AccountCircle from '@mui/icons-material/AccountCircle';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ClearIcon from '@mui/icons-material/Clear';
+import CloseIcon from '@mui/icons-material/Close';
+import EuroIcon from '@mui/icons-material/Euro';
+import FunctionsIcon from '@mui/icons-material/Functions';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import ListAltIcon from '@mui/icons-material/ListAlt';
+import InfoIcon from '@mui/icons-material/Info';
 import MenuIcon from '@mui/icons-material/Menu';
-import MoreIcon from '@mui/icons-material/MoreVert';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -43,12 +45,13 @@ export default function Root() {
 
   const currentItem = useSelector((state) => state.global.selectedItem);
   const token = useSelector((state) => state.global.token);
+  const visibleStats = useSelector((state) => state.global.visibleStats);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const matchRoot = useMatch('/');
+  const matchItems = useMatch('/');
   const matchItemView = useMatch('/items/:item');
   const matchItemEdit = useMatch('/items/:item/edit');
   const matchStats = useMatch('/stats');
@@ -168,7 +171,7 @@ export default function Root() {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleLogout}>
+      <MenuItem onClick={handleMenuClose}>
         <IconButton
           size="large"
           aria-label="account of current user"
@@ -176,10 +179,29 @@ export default function Root() {
           aria-haspopup="true"
           color="inherit"
         >
-          <AccountCircle />
+          <EuroIcon />
         </IconButton>
-        <p>Sign out</p>
+        <Typography component="span" variant="h6">
+            {visibleStats.cost}
+        </Typography>
       </MenuItem>
+
+      <MenuItem onClick={handleMenuClose}>
+        <IconButton
+          size="large"
+          aria-label="account of current user"
+          aria-controls="primary-search-account-menu"
+          aria-haspopup="true"
+          color="inherit"
+        >
+          <FunctionsIcon />
+        </IconButton>
+        <Typography component="span" variant="h6">
+            {visibleStats.count}
+        </Typography>
+      </MenuItem>
+
+
     </Menu>
   );
 
@@ -205,7 +227,7 @@ export default function Root() {
           </IconButton>
 
           {/* ---------------------------------------------- Search ------------ */}
-          { matchRoot && (
+          { matchItems && (
 
           <InputBase
 
@@ -262,7 +284,7 @@ export default function Root() {
            <Box sx={{ flexGrow: 1 }} />
 
           {/* ---------------------------------------------- Menu -------------- */}
-          { (matchRoot || matchStats)&& (
+          { (matchItems || matchStats)&& (
               <Box sx={{ display: { xs: 'flex', md: 'flex' } }}>
                 <IconButton
                   size="large"
@@ -272,13 +294,13 @@ export default function Root() {
                   onClick={handleMenuOpen}
                   color="inherit"
                 >
-                  <MoreIcon />
+                  <InfoIcon />
                 </IconButton>
               </Box>
           )}
 
           {/* ---------------------------------------------- Close ------------- */}
-          { (matchItemView || matchItemEdit) && (
+          { (matchItemEdit) && (
             <Box sx={{ display: { xs: 'flex', md: 'flex' } }}>
                 <IconButton
                   size="large"
@@ -288,7 +310,7 @@ export default function Root() {
                   onClick={handleClose}
                   color="inherit"
                 >
-                  <ArrowBackIcon />
+                  <CloseIcon />
                 </IconButton>
             </Box>
           )}
