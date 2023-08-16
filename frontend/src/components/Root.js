@@ -6,6 +6,8 @@ import { alpha } from '@mui/material/styles';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -16,15 +18,11 @@ import InputBase from '@mui/material/InputBase';
 import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
-import MenuItem from '@mui/material/MenuItem';
-import Menu from '@mui/material/Menu';
 import Typography from '@mui/material/Typography';
 
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import ClearIcon from '@mui/icons-material/Clear';
 import CloseIcon from '@mui/icons-material/Close';
-import EuroIcon from '@mui/icons-material/Euro';
-import FunctionsIcon from '@mui/icons-material/Functions';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import InfoIcon from '@mui/icons-material/Info';
@@ -154,57 +152,6 @@ export default function Root() {
     navigate('/stats');
   }
 
-  const menuId = 'toolbar-menu';
-  const renderMenu = (
-    <Menu
-      anchorEl={anchorEl}
-      anchorOrigin={{
-        vertical: 'top',
-        horizontal: 'right',
-      }}
-      id={menuId}
-
-      transformOrigin={{
-        vertical: 'top',
-        horizontal: 'right',
-      }}
-      open={isMenuOpen}
-      onClose={handleMenuClose}
-    >
-      <MenuItem onClick={handleMenuClose}>
-        <IconButton
-          size="large"
-          aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
-          aria-haspopup="true"
-          color="inherit"
-        >
-          <EuroIcon />
-        </IconButton>
-        <Typography component="span" variant="h6">
-            {visibleStats.cost}
-        </Typography>
-      </MenuItem>
-
-      <MenuItem onClick={handleMenuClose}>
-        <IconButton
-          size="large"
-          aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
-          aria-haspopup="true"
-          color="inherit"
-        >
-          <FunctionsIcon />
-        </IconButton>
-        <Typography component="span" variant="h6">
-            {visibleStats.count}
-        </Typography>
-      </MenuItem>
-
-
-    </Menu>
-  );
-
   if(!token) {
     return <SignIn />
   }
@@ -284,12 +231,12 @@ export default function Root() {
            <Box sx={{ flexGrow: 1 }} />
 
           {/* ---------------------------------------------- Menu -------------- */}
-          { (matchItems || matchStats)&& (
+          { (matchItems)&& (
+              <React.Fragment>
               <Box sx={{ display: { xs: 'flex', md: 'flex' } }}>
                 <IconButton
                   size="large"
                   aria-label="show more"
-                  aria-controls={menuId}
                   aria-haspopup="true"
                   onClick={handleMenuOpen}
                   color="inherit"
@@ -297,6 +244,16 @@ export default function Root() {
                   <InfoIcon />
                 </IconButton>
               </Box>
+              <Dialog open={isMenuOpen} onClose={handleMenuClose}>
+                <DialogTitle>Set backup account</DialogTitle>
+                <Typography component="span" variant="h6">
+                    Cost: {visibleStats.cost}
+                </Typography>
+                <Typography component="span" variant="h6">
+                    Items: {visibleStats.count}
+                </Typography>
+              </Dialog>
+              </React.Fragment>
           )}
 
           {/* ---------------------------------------------- Close ------------- */}
@@ -305,7 +262,6 @@ export default function Root() {
                 <IconButton
                   size="large"
                   aria-label="show more"
-                  aria-controls={menuId}
                   aria-haspopup="true"
                   onClick={handleClose}
                   color="inherit"
@@ -319,7 +275,6 @@ export default function Root() {
         </Toolbar>
       </AppBar>
       <Toolbar />
-      {renderMenu}
       <Outlet />
     </Box>
     <SwipeableDrawer
