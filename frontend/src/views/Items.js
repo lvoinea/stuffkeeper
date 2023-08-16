@@ -107,19 +107,32 @@ export default function Items() {
         setTimeout(() => {
             window.scrollTo(0, scrollPosition);
         });
-        let stats = {count: 0, cost: 0}
+        // Compute visible items stats
+        let stats = {count: 0, cost: 0, tags: 0, locations: 0}
+        let l_tags = {}
+        let l_locations = {}
         items.forEach(item => {
             if (isVisible(item)) {
                 stats.count += 1;
                 stats.cost += item.cost;
+                for(let i=0; i<item.tags.length; i++){
+                    let tagName = item.tags[i].name
+                    l_tags[tagName] = true;
+                }
+                for(let i=0; i<item.locations.length; i++){
+                    let locationName = item.locations[i].name
+                    l_locations[locationName] = true;
+                }
             }
         });
+        stats.tags = Object.entries(l_tags).length;
+        stats.locations = Object.entries(l_locations).length;
         dispatch(setVisibleStats(stats));
     };
     setLoading(true);
     fetchData()
     .finally(()=> {setLoading(false)});
-  }, [token, scrollPosition, isVisible]);
+  }, [token, scrollPosition, isVisible, dispatch]);
 
   return(
     <React.Fragment>

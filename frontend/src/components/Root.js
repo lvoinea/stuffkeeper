@@ -9,6 +9,7 @@ import List from '@mui/material/List';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -76,7 +77,7 @@ export default function Root() {
         }
     }
     dispatch(setSearchFilter(filters));
-  });
+  },[dispatch]);
 
   useEffect(()=>{
     async function fetchData() {
@@ -245,13 +246,57 @@ export default function Root() {
                 </IconButton>
               </Box>
               <Dialog open={isMenuOpen} onClose={handleMenuClose}>
-                <DialogTitle>Set backup account</DialogTitle>
-                <Typography component="span" variant="h6">
-                    Cost: {visibleStats.cost}
-                </Typography>
-                <Typography component="span" variant="h6">
-                    Items: {visibleStats.count}
-                </Typography>
+                <DialogTitle>Selected items</DialogTitle>
+                <Grid container spacing={0} sx={{paddingLeft: '10px', marginBottom: '10px'}}>
+                <React.Fragment>
+                    {/*--- Count ---*/}
+                    <Grid xs={4} item={true}>
+                        <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                            Count
+                        </Typography>
+                    </Grid>
+                    <Grid xs={8} item={true}>
+                        <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                           : {visibleStats.count}
+                        </Typography>
+                    </Grid>
+                    {/*--- Cost ---*/}
+                    <Grid xs={4} item={true}>
+                        <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                            Cost
+                        </Typography>
+                    </Grid>
+                    <Grid xs={8} item={true}>
+                        <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                           : {visibleStats.cost} &#8364;
+                        </Typography>
+                    </Grid>
+                    {/*--- Tags ---*/}
+                    <Grid xs={4} item={true}>
+                        <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                            Tags
+                        </Typography>
+                    </Grid>
+                    <Grid xs={8} item={true}>
+                        <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                           : {visibleStats.tags}
+                        </Typography>
+                    </Grid>
+                    {/*--- Locations ---*/}
+                    <Grid xs={4} item={true}>
+                        <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                            Locations
+                        </Typography>
+                    </Grid>
+                    <Grid xs={8} item={true}>
+                        <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
+                           : {visibleStats.locations}
+                        </Typography>
+                    </Grid>
+                    {/*-------------*/}
+                </React.Fragment>
+                </Grid>
+
               </Dialog>
               </React.Fragment>
           )}
