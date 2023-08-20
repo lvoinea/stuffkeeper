@@ -5,6 +5,7 @@ import { Outlet, useNavigate, useMatch, useSearchParams } from "react-router-dom
 import { alpha } from '@mui/material/styles';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import List from '@mui/material/List';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -35,7 +36,9 @@ import SignIn from './SignIn';
 
 import {getTags, getLocations} from '../services/backend';
 import {setTags, setLocations, setItemCategory, setSearchFilter} from '../services/store';
+import {filter2search} from '../services/utils';
 
+const MAX_RELATED = 5
 
 export default function Root() {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -45,6 +48,7 @@ export default function Root() {
   const currentItem = useSelector((state) => state.global.selectedItem);
   const token = useSelector((state) => state.global.token);
   const visibleStats = useSelector((state) => state.global.visibleStats);
+  const searchFilter = useSelector((state) => state.global.searchFilter);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -151,7 +155,31 @@ export default function Root() {
 
   const onStats = () => {
     navigate('/stats');
-  }
+  };
+
+  const onTag = (tagName) => () => {
+    handleMenuClose();
+    let searchText = filter2search(searchFilter);
+    if (searchText !== '') {
+        searchText = `${searchText},`;
+    }
+    navigate({
+        pathname: '/',
+        search: `?search=${searchText} t.${tagName}`,
+    })
+   };
+
+  const onLocation = (locationName) => () => {
+    handleMenuClose();
+    let searchText = filter2search(searchFilter);
+    if (searchText !== '') {
+        searchText = `${searchText},`;
+    }
+    navigate({
+        pathname: '/',
+        search: `?search=${searchText} l.${locationName}`,
+    })
+   };
 
   if(!token) {
     return <SignIn />
@@ -272,6 +300,9 @@ export default function Root() {
                         </Typography>
                     </Grid>
                     {/*--- Tags ---*/}
+                    <Grid xs={12} item={true}>
+                        <Divider variant="middle" sx={{marginTop: 2}} />
+                    </Grid>
                     <Grid xs={4} item={true}>
                         <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
                             Tags
@@ -279,10 +310,25 @@ export default function Root() {
                     </Grid>
                     <Grid xs={8} item={true}>
                         <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
-                           : {visibleStats.tags}
+                           : {visibleStats.tags.length}
                         </Typography>
+                        <div>
+                        {visibleStats.tags.slice(0,MAX_RELATED).map(tag =>
+                            <Chip key={'t_'+tag.name}
+                                label={tag.name + ' (' + tag.count + ')'}
+                                onClick={onTag(tag.name)}
+                                size="small" sx={{marginLeft: 1, marginTop: 1}} color="primary"/>
+                        )}
+                        {(visibleStats.tags.length > MAX_RELATED) &&
+                            <span> ...</span>
+                        }
+                        </div>
+
                     </Grid>
                     {/*--- Locations ---*/}
+                    <Grid xs={12} item={true}>
+                        <Divider variant="middle" sx={{marginTop: 2}}/>
+                    </Grid>
                     <Grid xs={4} item={true}>
                         <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
                             Locations
@@ -290,8 +336,19 @@ export default function Root() {
                     </Grid>
                     <Grid xs={8} item={true}>
                         <Typography sx={{ display: 'inline' }} component="span" variant="h6" color="text.primary" align="justify">
-                           : {visibleStats.locations}
+                           : {visibleStats.locations.length}
                         </Typography>
+                        <div>
+                        {visibleStats.locations.slice(0,MAX_RELATED).map(location =>
+                            <Chip key={'l_'+location.name}
+                                label={location.name + ' (' + location.count + ')'}
+                                onClick={onLocation(location.name)}
+                                size="small" sx={{marginLeft: 1, marginTop: 1}} color="success"/>
+                        )}
+                        {(visibleStats.locations.length > MAX_RELATED) &&
+                            <span> ...</span>
+                        }
+                        </div>
                     </Grid>
                     {/*-------------*/}
                 </React.Fragment>

@@ -117,16 +117,30 @@ export default function Items() {
                 stats.cost += item.cost;
                 for(let i=0; i<item.tags.length; i++){
                     let tagName = item.tags[i].name
-                    l_tags[tagName] = true;
+                    l_tags[tagName] = l_tags[tagName] || {count: 0}
+                    l_tags[tagName].count += 1
                 }
                 for(let i=0; i<item.locations.length; i++){
                     let locationName = item.locations[i].name
-                    l_locations[locationName] = true;
+                    l_locations[locationName] = l_locations[locationName] || {count: 0};
+                    l_locations[locationName].count += 1
                 }
             }
         });
-        stats.tags = Object.entries(l_tags).length;
-        stats.locations = Object.entries(l_locations).length;
+        stats.tags = Object.entries(l_tags).map(entry => {
+            return {
+                name: entry[0],
+                count: entry[1].count
+            }
+        });
+        stats.tags.sort((a,b) => b.count-a.count);
+        stats.locations = Object.entries(l_locations).map(entry => {
+            return {
+                name: entry[0],
+                count: entry[1].count
+            }
+        });
+        stats.locations.sort((a,b) => b.count-a.count);
         dispatch(setVisibleStats(stats));
     };
     setLoading(true);

@@ -9,7 +9,7 @@ const initialState = {
   tags: [],
   locations: [],
   searchFilter: [],
-  visibleStats: {count: 0, cost: 0, tags: 0, locations: 0}
+  visibleStats: {count: 0, cost: 0, tags: [], locations: []}
 }
 
 export const globalSlice = createSlice({
