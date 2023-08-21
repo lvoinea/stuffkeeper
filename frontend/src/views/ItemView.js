@@ -51,10 +51,9 @@ export default function ItemView() {
   const navigation = useNavigation();
   const navigate = useNavigate();
 
-
   if (error) {
     throw error;
-  }
+  };
 
   const onEdit = () => {
     navigate('edit');
@@ -82,47 +81,24 @@ export default function ItemView() {
    const onArchive = async() => {
      await archiveItem({token, id, active: false});
      navigate(-1);
-   }
+   };
    
    const onRestore = async() => {
      await archiveItem({token, id, active: true});
      navigate(-1);
-   }
+   };
 
    const onDelete = async() => {
      await deleteItem({token, id});
      navigate(-1);
-   }
-
-   let actions = [
-      { icon: <ModeEditOutlineOutlinedIcon />, name: 'Edit', action: onEdit }
-   ];
-   if ((itemCategory === 'active') && (item.is_active)) {
-    actions.push({
-            icon: <InventoryIcon sx={{color: "#a10666"}}/>,
-            name: 'Archive',
-            action: onArchive
-        });
-   }
-   else if ((itemCategory === 'archived') && (!item.is_active)) {
-    actions.push({
-            icon: <UnarchiveIcon sx={{color: "#1f750f"}}/>,
-            name: 'Restore',
-            action: onRestore
-        });
-    actions.push({
-            icon: <DeleteIcon sx={{color: "#b52902"}}/>,
-            name: 'Delete',
-            action: onDelete
-        });
-   }
+   };
 
    const onOpenZoom = (index) => async () => {
         setSelectedImageIndex(index);
         const image = await loadItemImage({token, id, image: item.photos.sources[index] + '.full'});
         setSelectedImage(image);
         setOpen(true);
-   }
+   };
 
    const onCloseZoom = () => {
         setOpen(false);
@@ -148,6 +124,30 @@ export default function ItemView() {
             pathname: '/',
             search: `?search=${searchText} l.${locationName}`,
         })
+   };
+
+   // Set-up scenario dependent speed dial actions
+   let actions = [
+      { icon: <ModeEditOutlineOutlinedIcon />, name: 'Edit', action: onEdit }
+   ];
+   if ((itemCategory === 'active') && (item.is_active)) {
+    actions.push({
+            icon: <InventoryIcon sx={{color: "#a10666"}}/>,
+            name: 'Archive',
+            action: onArchive
+        });
+   }
+   else if ((itemCategory === 'archived') && (!item.is_active)) {
+    actions.push({
+            icon: <UnarchiveIcon sx={{color: "#1f750f"}}/>,
+            name: 'Restore',
+            action: onRestore
+        });
+    actions.push({
+            icon: <DeleteIcon sx={{color: "#b52902"}}/>,
+            name: 'Delete',
+            action: onDelete
+        });
    };
 
   return(
@@ -355,7 +355,7 @@ export default function ItemView() {
            </React.Fragment>
        )}
        </Grid>
-
+       {/*---------------------------------------- Actions -----------*/}
        <SpeedDial
             ariaLabel="SpeedDial basic example"
             sx={{ position: 'fixed', bottom: 16, right: 16 }}

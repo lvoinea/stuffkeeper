@@ -23,8 +23,8 @@ import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import Typography from '@mui/material/Typography';
 
 import AccountCircle from '@mui/icons-material/AccountCircle';
-import ClearIcon from '@mui/icons-material/Clear';
 import CloseIcon from '@mui/icons-material/Close';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import InfoIcon from '@mui/icons-material/Info';
@@ -35,7 +35,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import SignIn from './SignIn';
 
 import {getTags, getLocations} from '../services/backend';
-import {setTags, setLocations, setItemCategory, setSearchFilter} from '../services/store';
+import {setTags, setLocations, setItemCategory, setSearchFilter, setIsMultiEdit} from '../services/store';
 import {filter2search} from '../services/utils';
 
 const MAX_RELATED = 5
@@ -46,6 +46,7 @@ export default function Root() {
   const [searchStr, setSearchStr] = React.useState('');
 
   const currentItem = useSelector((state) => state.global.selectedItem);
+  const isMultiEdit = useSelector((state) => state.global.isMultiEdit);
   const token = useSelector((state) => state.global.token);
   const visibleStats = useSelector((state) => state.global.visibleStats);
   const searchFilter = useSelector((state) => state.global.searchFilter);
@@ -128,7 +129,12 @@ export default function Root() {
   };
 
   const handleClose = async () => {
-    navigate(-1);
+    if (isMultiEdit) {
+        dispatch(setIsMultiEdit(false));
+    }
+    else {
+        navigate(-1);
+    }
   };
 
   const onSearch = async (event) => {
@@ -225,16 +231,16 @@ export default function Root() {
                 <InputAdornment position="start">
                   <SearchIcon
                         sx={{
-                            color:'white',
+                            color:'#b3caf5',
                             padding: (theme) => theme.spacing(0, 0.5)
                         }}/>
                 </InputAdornment>
             )}
             endAdornment={(
                 <InputAdornment position="end">
-                  <ClearIcon onClick={clearSearch}
+                  <HighlightOffIcon onClick={clearSearch}
                         sx={{
-                          color:'white',
+                          color:'#b3caf5',
                           padding: (theme) => theme.spacing(0, 0.5),
                        }}/>
                 </InputAdornment>
@@ -260,7 +266,7 @@ export default function Root() {
            <Box sx={{ flexGrow: 1 }} />
 
           {/* ---------------------------------------------- Menu -------------- */}
-          { (matchItems)&& (
+          { (matchItems && !isMultiEdit) && (
               <React.Fragment>
               <Box sx={{ display: { xs: 'flex', md: 'flex' } }}>
                 <IconButton
@@ -359,7 +365,7 @@ export default function Root() {
           )}
 
           {/* ---------------------------------------------- Close ------------- */}
-          { (matchItemEdit) && (
+          { (matchItemEdit || isMultiEdit) && (
             <Box sx={{ display: { xs: 'flex', md: 'flex' } }}>
                 <IconButton
                   size="large"

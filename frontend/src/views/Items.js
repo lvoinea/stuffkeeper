@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 
 import Backdrop from '@mui/material/Backdrop';
+import Checkbox from '@mui/material/Checkbox';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
@@ -13,22 +14,29 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
+import SpeedDial from '@mui/material/SpeedDial';
+import SpeedDialAction from '@mui/material/SpeedDialAction';
 import Stack from '@mui/material/Stack';
 
 import AddIcon from '@mui/icons-material/Add';
+import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutlined';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 import {getItems, addItem } from '../services/backend';
-import {setSelectedItem, setYItems, setVisibleStats} from '../services/store';
+import {setSelectedItem, setYItems, setVisibleStats, setIsMultiEdit} from '../services/store';
 
 
 export default function Items() {
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [actions, setActions] = useState([]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const token = useSelector((state) => state.global.token);
   const scrollPosition = useSelector((state) => state.global.itemsY);
   const itemCategory = useSelector((state) => state.global.itemCategory);
+  const isMultiEdit = useSelector((state) => state.global.isMultiEdit);
   const currentItem = useSelector((state) => state.global.selectedItem);
   const searchFilter = useSelector((state) => state.global.searchFilter);
 
@@ -50,7 +58,7 @@ export default function Items() {
     }
   }
 
-  const onAddItem = async () => {
+  const onAddItem = useCallback(async () => {
     const newItem = {
       "name": "",
       "description": "",
@@ -64,7 +72,12 @@ export default function Items() {
     dispatch(setSelectedItem({name: addedItem.name, id: addedItem.id}));
     dispatch(setYItems(window.pageYOffset));
     navigate(`/items/${addedItem.id}/edit`);
-  }
+  }, [dispatch, navigate, token]);
+
+  const onEdit = useCallback(async () => {
+    dispatch(setIsMultiEdit(true));
+    setIsMenuOpen(false);
+  }, [dispatch]);
 
   const isVisible = useCallback((item) => {
     let visible = (itemCategory === 'active' && item.is_active) ||
@@ -99,6 +112,10 @@ export default function Items() {
     }
     return visible
   }, [itemCategory, searchFilter]);
+
+  const onMenuOpen = () => {
+    setIsMenuOpen(true);
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -143,10 +160,18 @@ export default function Items() {
         stats.locations.sort((a,b) => b.count-a.count);
         dispatch(setVisibleStats(stats));
     };
+    // Set-up scenario dependent speed dial actions
+    let l_actions = [];
+    if (!isMultiEdit) {
+        l_actions.push({ icon: <AddIcon />, name: 'Add new', action: onAddItem });
+        l_actions.push({ icon: <ModeEditOutlineOutlinedIcon />, name: 'Edit', action: onEdit });
+    };
+    setActions(l_actions);
+    // Load item data
     setLoading(true);
     fetchData()
     .finally(()=> {setLoading(false)});
-  }, [token, scrollPosition, isVisible, dispatch]);
+  }, [token, scrollPosition, isVisible, dispatch, isMultiEdit, onEdit, onAddItem]);
 
   return(
     <React.Fragment>
@@ -163,12 +188,17 @@ export default function Items() {
     <List sx={{ width: '100%' }}>
         {items.map(item => isVisible(item) &&
           <React.Fragment key={item.id}>
+          <Stack direction="row" justifyContent="flex-start" alignItems="flex-start" spacing={0}>
+          {(isMultiEdit) &&
+            <Checkbox sx={{ marginTop: 2}}/>
+          }
           <ListItem disablePadding>
             <ListItemButton role={undefined} onClick={handleSelectItem(item)}
                     alignItems="flex-start"
                     selected={item.id === currentItem.id}
                     dense>
-            <div>
+
+             <div>
                 <img style={{borderRadius: '1rem',
                     marginRight: '1rem',
                     width: '5rem',
@@ -177,7 +207,6 @@ export default function Items() {
                   src={getThumbnail(item)}
                   alt={item.name}
                 />
-
                 {(itemCategory === 'archived') && (
                     <Fab aria-label="arhived"
                         size='small'
@@ -185,8 +214,8 @@ export default function Items() {
                         <InventoryIcon/>
                     </Fab>
                 )}
-
             </div>
+
             <Stack direction="column" justifyContent="center" alignItems="flex-start" spacing={0}>
                {/*---------------- Description -----------*/}
                <ListItemText
@@ -212,18 +241,31 @@ export default function Items() {
                     )}
                </Stack>
             </Stack>
+
           </ListItemButton>
           </ListItem>
+          </Stack>
           <Divider variant="inset" component="li" />
           </React.Fragment>
         )}
     </List>
     {/*------------------------------------------- Add Item ---------------*/}
-    <Fab color="primary" aria-label="add"
-        onClick={onAddItem}
-        sx={{ position: 'fixed', right: '20px', bottom: '20px'}}>
-            <AddIcon />
-    </Fab>
+
+    <SpeedDial
+            open={isMenuOpen} onOpen={onMenuOpen}
+            ariaLabel="SpeedDial basic example"
+            sx={{ position: 'fixed', bottom: 16, right: 16 }}
+            icon={<MoreVertIcon />} >
+            {actions.map((action) => (
+              <SpeedDialAction
+                key={action.name}
+                icon={action.icon}
+                tooltipTitle={action.name}
+                onClick={action.action}
+              />
+            ))}
+     </SpeedDial>
+
     </React.Fragment>
   );
 }
