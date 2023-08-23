@@ -115,20 +115,20 @@ export default function Root() {
     setDrawer( open );
   };
 
-  const isMenuOpen = Boolean(anchorEl);
-  const handleMenuClose = () => {
+  const isInfoOpen = Boolean(anchorEl);
+  const onInfoClose = () => {
     setAnchorEl(null);
   };
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+  const onInfo = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleLogout = async () => {
+  const onLogout = async () => {
     navigate('/logout')
   };
 
-  const handleClose = async () => {
+  const onClose = async () => {
     if (isMultiEdit) {
         dispatch(setIsMultiEdit(false));
     }
@@ -148,7 +148,7 @@ export default function Root() {
       }
   };
 
-  const clearSearch = () => {
+  const onClearSearch = () => {
     setSearchStr('');
     computeFilters('')();
     setSearchParams([]);
@@ -163,8 +163,8 @@ export default function Root() {
     navigate('/stats');
   };
 
-  const onTag = (tagName) => () => {
-    handleMenuClose();
+  const onInfoTag = (tagName) => () => {
+    onInfoClose();
     let searchText = filter2search(searchFilter);
     if (searchText !== '') {
         searchText = `${searchText},`;
@@ -175,8 +175,8 @@ export default function Root() {
     })
    };
 
-  const onLocation = (locationName) => () => {
-    handleMenuClose();
+  const onInfoLocation = (locationName) => () => {
+    onInfoClose();
     let searchText = filter2search(searchFilter);
     if (searchText !== '') {
         searchText = `${searchText},`;
@@ -238,7 +238,7 @@ export default function Root() {
             )}
             endAdornment={(
                 <InputAdornment position="end">
-                  <HighlightOffIcon onClick={clearSearch}
+                  <HighlightOffIcon onClick={onClearSearch}
                         sx={{
                           color:'#b3caf5',
                           padding: (theme) => theme.spacing(0, 0.5),
@@ -265,7 +265,7 @@ export default function Root() {
 
            <Box sx={{ flexGrow: 1 }} />
 
-          {/* ---------------------------------------------- Menu -------------- */}
+          {/* ---------------------------------------------- Info -------------- */}
           { (matchItems && !isMultiEdit) && (
               <React.Fragment>
               <Box sx={{ display: { xs: 'flex', md: 'flex' } }}>
@@ -273,13 +273,13 @@ export default function Root() {
                   size="large"
                   aria-label="show more"
                   aria-haspopup="true"
-                  onClick={handleMenuOpen}
+                  onClick={onInfo}
                   color="inherit"
                 >
                   <InfoIcon />
                 </IconButton>
               </Box>
-              <Dialog open={isMenuOpen} onClose={handleMenuClose}>
+              <Dialog open={isInfoOpen} onClose={onInfoClose}>
                 <DialogTitle>Selected items</DialogTitle>
                 <Grid container spacing={0} sx={{paddingLeft: '10px', marginBottom: '10px'}}>
                 <React.Fragment>
@@ -322,7 +322,7 @@ export default function Root() {
                         {visibleStats.tags.slice(0,MAX_RELATED).map(tag =>
                             <Chip key={'t_'+tag.name}
                                 label={tag.name + ' (' + tag.count + ')'}
-                                onClick={onTag(tag.name)}
+                                onClick={onInfoTag(tag.name)}
                                 size="small" sx={{marginLeft: 1, marginTop: 1}} color="primary"/>
                         )}
                         {(visibleStats.tags.length > MAX_RELATED) &&
@@ -348,7 +348,7 @@ export default function Root() {
                         {visibleStats.locations.slice(0,MAX_RELATED).map(location =>
                             <Chip key={'l_'+location.name}
                                 label={location.name + ' (' + location.count + ')'}
-                                onClick={onLocation(location.name)}
+                                onClick={onInfoLocation(location.name)}
                                 size="small" sx={{marginLeft: 1, marginTop: 1}} color="success"/>
                         )}
                         {(visibleStats.locations.length > MAX_RELATED) &&
@@ -371,7 +371,7 @@ export default function Root() {
                   size="large"
                   aria-label="show more"
                   aria-haspopup="true"
-                  onClick={handleClose}
+                  onClick={onClose}
                   color="inherit"
                 >
                   <CloseIcon />
@@ -435,7 +435,7 @@ export default function Root() {
           <List>
 
             <ListItem key='Sign out' disablePadding>
-                <ListItemButton onClick={handleLogout}>
+                <ListItemButton onClick={onLogout}>
                   <ListItemIcon>
                     <AccountCircle />
                   </ListItemIcon>
