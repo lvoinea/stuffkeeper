@@ -2,7 +2,9 @@ import React, {useEffect, useState, useCallback} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 
+import Autocomplete from '@mui/material/Autocomplete';
 import Backdrop from '@mui/material/Backdrop';
+import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -14,6 +16,7 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
@@ -30,7 +33,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RemoveDoneIcon from '@mui/icons-material/RemoveDone';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 
-import {getItems, addItem } from '../services/backend';
+import {getItems, addItem, checkTag } from '../services/backend';
 import {setSelectedItem, setYItems, setVisibleStats, setIsMultiEdit} from '../services/store';
 
 
@@ -38,13 +41,19 @@ export default function Items() {
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [actions, setActions] = useState([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [editSelection, setEditSelection] = useState({});
   const [isMoveOpen, setIsMoveOpen] = useState(false);
   const [isTagOpen, setIsTagOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [tags, setTags] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [inputTag, setInputTag] = useState('');
+  const [inputLocation, setInputLocation] = useState('');
 
   const token = useSelector((state) => state.global.token);
+  const globalTags = useSelector((state) => state.global.tags);
+  const globalLocations = useSelector((state) => state.global.locations);
   const scrollPosition = useSelector((state) => state.global.itemsY);
   const itemCategory = useSelector((state) => state.global.itemCategory);
   const isMultiEdit = useSelector((state) => state.global.isMultiEdit);
@@ -135,19 +144,19 @@ export default function Items() {
     });
   };
 
-  const onSelectAll = (selection) => () => {
+  const onSelectAll = useCallback(() => {
     setIsMenuOpen(false);
     let l_editSelection = {};
-    Object.keys(selection).forEach( key => l_editSelection[key] = true);
+    Object.keys(editSelection).forEach( key => l_editSelection[key] = true);
     setEditSelection(l_editSelection);
-  };
+  }, [editSelection]);
 
-  const onClearAll = (selection) => () => {
+  const onClearAll = useCallback(() => {
     setIsMenuOpen(false);
     let l_editSelection = {};
-    Object.keys(selection).forEach( key => l_editSelection[key] = false);
+    Object.keys(editSelection).forEach( key => l_editSelection[key] = false);
     setEditSelection(l_editSelection);
-  };
+  },[editSelection]);
 
   const handleSelectItem = (item) => () => {
     if (isMultiEdit) {
@@ -160,21 +169,73 @@ export default function Items() {
     };
   };
 
-  const onTagSelection = () => {
+  const getCommonTags = useCallback(() => {
+
+    // Get tags from the selected items
+    let selectedCount = 0;
+    let l_tags = {}
+    items.forEach(item => {
+        if (editSelection[item.id]) {
+            selectedCount += 1;
+            for(let i=0; i<item.tags.length; i++){
+                let tagName = item.tags[i].name
+                l_tags[tagName] = l_tags[tagName] || 0;
+                l_tags[tagName] += 1;
+            }
+        }
+    });
+
+    // Extract tags that occur in all selected items
+    let commonTags=[];
+    Object.entries(l_tags).forEach(tag => {
+        if (tag[1] === selectedCount) {
+            commonTags.push({
+                name: tag[0]
+            });
+        }
+    });
+
+    return commonTags;
+  },[items, editSelection]);
+
+  const onTagOpen = useCallback(() => {
      setIsMenuOpen(false);
+     let commonTags = getCommonTags();
+     setTags(commonTags);
      setIsTagOpen(true);
+  },[getCommonTags]);
+  
+  const onTagClose = () => {
+     setIsTagOpen(false);
+  };
+  
+  const onTagExecute = async (event) => {
+    event.preventDefault();
+    let needsSaving = false;
+     if (needsSaving){
+        setIsSaving(true);
+        setIsSaving(false);
+    };
+    setTags([]);
+    setIsTagOpen(false);
   };
 
-  const onMoveSelection = () => {
+  const onMoveOpen = () => {
      setIsMenuOpen(false);
      setIsMoveOpen(true);
   };
 
-  const onTagClose = () => {
-     setIsTagOpen(false);
+  const onMoveClose = () => {
+    setIsMoveOpen(false);
   };
 
-   const onMoveClose = () => {
+  const onMoveExecute = async (event) => {
+    event.preventDefault();
+    let needsSaving = false;
+    if (needsSaving){
+        setIsSaving(true);
+        setIsSaving(false);
+    };
     setIsMoveOpen(false);
   };
 
@@ -192,8 +253,8 @@ export default function Items() {
 
   useEffect(() => {
     async function fetchData() {
-        const items = await getItems({token});
-        setItems(items);
+        const l_items = await getItems({token});
+        setItems(l_items);
         setTimeout(() => {
             window.scrollTo(0, scrollPosition);
         });
@@ -203,7 +264,7 @@ export default function Items() {
         let l_tags = {}
         let l_locations = {}
         let l_editSelection = {}
-        items.forEach(item => {
+        l_items.forEach(item => {
             if (isVisible(item)) {
                 stats.count += 1;
                 stats.cost += item.cost;
@@ -236,25 +297,35 @@ export default function Items() {
         });
         stats.locations.sort((a,b) => b.count-a.count);
         dispatch(setVisibleStats(stats));
+    };
+
+    // Load item data
+    setLoading(true);
+    fetchData()
+    .finally(()=> {setLoading(false)});
+  }, [token, scrollPosition, isVisible, dispatch]);
+
+  const getActions = () => {
 
         // Set-up scenario dependent speed dial actions
-        let l_actions = [];
+        let actions = [];
         if (!isMultiEdit) {
-            l_actions.push({ icon: <AddIcon />, name: 'Add new', action: onAddItem, static: true });
-            l_actions.push({ icon: <ModeEditOutlineOutlinedIcon />, name: 'Edit', action: onMultiEdit, static: true });
+            actions.push({ icon: <AddIcon />, name: 'Add new', action: onAddItem, static: true });
+            actions.push({ icon: <ModeEditOutlineOutlinedIcon />, name: 'Edit', action: onMultiEdit, static: true });
         }
+
         else {
             if (itemCategory === 'active') {
-                l_actions.push({ icon: <InventoryIcon sx={{color: "#a10666"}}/>, name: 'Archive', action: onClearAll, static: false });
+                actions.push({ icon: <InventoryIcon sx={{color: "#a10666"}}/>, name: 'Archive', action: onClearAll, static: false });
             }
             else {
-                l_actions.push({
+                actions.push({
                     icon: <UnarchiveIcon sx={{color: "#1f750f"}}/>,
                     name: 'Restore',
                     action: onRestoreSelection,
                     static: false
                 });
-                l_actions.push({
+                actions.push({
                         icon: <DeleteIcon sx={{color: "#b52902"}}/>,
                         name: 'Delete',
                         action: onDeleteSelection,
@@ -262,19 +333,15 @@ export default function Items() {
                 });
             }
 
-            l_actions.push({ icon: <RemoveDoneIcon />, name: 'Clear all', action: onClearAll(l_editSelection), static: true });
-            l_actions.push({ icon: <DoneAllIcon />, name: 'Select all', action: onSelectAll(l_editSelection), static: true });
-            l_actions.push({ icon: <LaunchIcon />, name: 'Move', action: onMoveSelection, static: false });
-            l_actions.push({ icon: <LocalOfferIcon />, name: 'Tag', action: onTagSelection, static: false });
-        };
-        setActions(l_actions);
-    };
+            actions.push({ icon: <RemoveDoneIcon />, name: 'Clear all', action: onClearAll, static: true });
+            actions.push({ icon: <DoneAllIcon />, name: 'Select all', action: onSelectAll, static: true });
+            actions.push({ icon: <LaunchIcon />, name: 'Move', action: onMoveOpen, static: false });
+            actions.push({ icon: <LocalOfferIcon />, name: 'Tag', action: onTagOpen, static: false });
 
-    // Load item data
-    setLoading(true);
-    fetchData()
-    .finally(()=> {setLoading(false)});
-  }, [token, scrollPosition, isVisible, dispatch, isMultiEdit, itemCategory, onMultiEdit, onAddItem]);
+        };
+
+        return actions;
+  };
 
   return(
     <React.Fragment>
@@ -335,7 +402,7 @@ export default function Items() {
                   secondary={
                     <React.Fragment>
                       <Typography sx={{ display: 'inline' }} component="span" variant="body2" color="text.primary">
-                        {item.description?.slice(0,64)}<br/>
+                        {item.description?.slice(0,isMultiEdit?48:64)}<br/>
                       </Typography>
                     </React.Fragment>
                   }
@@ -363,7 +430,7 @@ export default function Items() {
             ariaLabel="SpeedDial basic example"
             sx={{ position: 'fixed', bottom: 16, right: 16 }}
             icon={<MoreVertIcon />} >
-            {actions.map((action) => (
+            {getActions().map((action) => (
               (action.static || isItemsSelected()) && (
                   <SpeedDialAction
                     key={action.name}
@@ -375,14 +442,61 @@ export default function Items() {
             ))}
      </SpeedDial>
 
-     {/*------------------------------------------- Move ---------------*/}
-     <Dialog open={isMoveOpen} onClose={onMoveClose}>
-                <DialogTitle>Move selected items</DialogTitle>
-     </Dialog>
+    {/*------------------------------------------- Move ---------------*/}
+    <Dialog open={isMoveOpen} onClose={onMoveClose}>
+        <DialogTitle>Move selected items</DialogTitle>
+        <form onSubmit={onMoveExecute} disabled={isSaving}>
+        </form>
+    </Dialog>
 
-     {/*------------------------------------------- Tag ---------------*/}
-     <Dialog open={isTagOpen} onClose={onTagClose}>
-                <DialogTitle>Tag selected items</DialogTitle>
+    {/*------------------------------------------- Tag ---------------*/}
+    <Dialog open={isTagOpen} onClose={onTagClose} >
+        <DialogTitle>Tag selected items</DialogTitle>
+        <form onSubmit={onTagExecute} disabled={isSaving}>
+            <Stack direction="column" justifyContent="center" alignItems="center" spacing={2} sx={{margin: 1.5}}>
+            <Autocomplete name="tags"
+                multiple fullWidth freeSolo disableClearable
+                options={globalTags}
+                getOptionLabel={(option) => option.name}
+                value={tags || []}
+                onChange={(event, newValue) => {
+                    setTags(newValue);
+                }}
+                inputValue = {inputTag}
+                onInputChange={(event, newValue) => {
+                    let candidateValue = newValue.trim();
+                    if (newValue !== candidateValue) {
+                        candidateValue = candidateValue.toLowerCase();
+                        if ((candidateValue !== '') && (!checkTag(candidateValue, tags))) {
+                            const selectedTags = tags.concat({name: candidateValue});
+                            setTags(selectedTags);
+                        }
+                        setInputTag('');
+                    } else {
+                        setInputTag(newValue);
+                    }
+                }}
+                isOptionEqualToValue={(option,value) => {
+                    return option.name === value.name;
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} variant="filled" label="Tags"/>
+                )}
+                renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                        <Chip
+                            color={checkTag(option.name, globalTags) ? 'info' : 'warning'}
+                            variant="filled"
+                            label={option.name}
+                            {...getTagProps({ index })}
+                        />
+                    ))
+                }
+
+            />
+            <Button variant="outlined" type="submit">Tag</Button>
+            </Stack>
+        </form>
      </Dialog>
 
 
