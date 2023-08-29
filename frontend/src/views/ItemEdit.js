@@ -187,11 +187,11 @@ export default function ItemEditView() {
         // Save the item itself
         await saveItem({token, item: updatedItem, id});
         // Update cached tags if new ones are added
-        const newTags = updatedItem.tags?.filter(tag => !checkTag(tag.name, tags));
-        if (newTags) {
-            dispatch(setTags(tags.concat(newTags)));
+        const newGlobalTags = updatedItem.tags?.filter(tag => !checkTag(tag.name, tags));
+        if (newGlobalTags) {
+            dispatch(setTags(tags.concat(newGlobalTags)));
         }
-        // Update cached tags if new ones are added
+        // Update cached locations if new ones are added
         const newLocations = updatedItem.locations?.filter(location => !checkLocation(location.name, locations));
         if (newLocations) {
             dispatch(setLocations(locations.concat(newLocations)));

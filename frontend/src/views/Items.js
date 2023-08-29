@@ -33,7 +33,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RemoveDoneIcon from '@mui/icons-material/RemoveDone';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 
-import {getItems, addItem, checkTag } from '../services/backend';
+import {getItems, addItem, saveItem, checkTag } from '../services/backend';
 import {setSelectedItem, setYItems, setVisibleStats, setIsMultiEdit} from '../services/store';
 
 
@@ -209,16 +209,44 @@ export default function Items() {
      setIsTagOpen(false);
   };
   
-  const onTagExecute = async (event) => {
+  const onTagExecute = useCallback(async (event) => {
     event.preventDefault();
-    let needsSaving = false;
-     if (needsSaving){
+
+    let tagsBefore = getCommonTags().map(tag=> tag.name);
+    let tagsAfter = tags.map(tag => tag.name);
+    let tagsDeleted = tagsBefore.filter(tag => !tagsAfter.includes(tag));
+    let tagsAdded = tagsAfter.filter(tag => !tagsBefore.includes(tag));
+
+    let needsSaving = (tagsAdded.length > 0) || (tagsDeleted.length > 0) ;
+    if (needsSaving){
         setIsSaving(true);
+        items.forEach(async (item) => {
+            if (editSelection[item.id]) {
+                let tagsExisting = item.tags.map(tag => tag.name);
+                let tagsItem = tagsExisting.filter( tag => !tagsDeleted.includes(tag));
+                let tagsNew = tagsAdded.filter( tag => !tagsExisting.includes(tag));
+                tagsItem.push(...tagsNew);
+
+                let updatedItem = {
+                    tags: tagsItem.map(tag => {
+                        return {name: tag}
+                    })
+                }
+
+                // Save the item itself
+                await saveItem({token, item: updatedItem, id: item.id});
+                // Update cached tags if new ones are added
+                const newGlobalTags = updatedItem.tags?.filter(tag => !checkTag(tag.name, tags));
+                if (newGlobalTags) {
+                    dispatch(setTags(tags.concat(newGlobalTags)));
+                }
+            }
+        });
         setIsSaving(false);
     };
     setTags([]);
     setIsTagOpen(false);
-  };
+  }, [token, items, tags, getCommonTags, editSelection, dispatch]);
 
   const onMoveOpen = () => {
      setIsMenuOpen(false);
