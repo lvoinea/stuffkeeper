@@ -34,7 +34,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RemoveDoneIcon from '@mui/icons-material/RemoveDone';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 
-import {getItems, addItem, saveItem, checkTag, checkLocation } from '../services/backend';
+import {getItems, addItem, saveItem, archiveItem, deleteItem, checkTag, checkLocation } from '../services/backend';
 import {setSelectedItem, setYItems, setVisibleStats, setIsMultiEdit,
  setTags as setGlobalTags, setLocations as setGlobalLocations} from '../services/store';
 
@@ -107,6 +107,53 @@ export default function Items() {
     }
     return visible
   }, [itemCategory, searchFilter]);
+
+  const computeVisibleStats = useCallback((p_items) => {
+    let stats = {count: 0, cost: 0, tags: 0, locations: 0}
+    let l_tags = {}
+    let l_locations = {}
+    p_items.forEach(item => {
+        if (isVisible(item)) {
+            stats.count += 1;
+            stats.cost += item.cost;
+            for(let i=0; i<item.tags.length; i++){
+                let tagName = item.tags[i].name
+                l_tags[tagName] = l_tags[tagName] || {count: 0}
+                l_tags[tagName].count += 1
+            }
+            for(let i=0; i<item.locations.length; i++){
+                let locationName = item.locations[i].name
+                l_locations[locationName] = l_locations[locationName] || {count: 0};
+                l_locations[locationName].count += 1
+            }
+        }
+    });
+    stats.tags = Object.entries(l_tags).map(entry => {
+        return {
+            name: entry[0],
+            count: entry[1].count
+        }
+    });
+    stats.tags.sort((a,b) => b.count-a.count);
+    stats.locations = Object.entries(l_locations).map(entry => {
+        return {
+            name: entry[0],
+            count: entry[1].count
+        }
+    });
+    stats.locations.sort((a,b) => b.count-a.count);
+    dispatch(setVisibleStats(stats));
+  }, [isVisible, dispatch]);
+
+  const resetSelection = useCallback((p_items) => {
+    let l_editSelection = {}
+    p_items.forEach(item => {
+        if (isVisible(item)) {
+            l_editSelection[item.id] = false;
+        }
+    });
+    setEditSelection(l_editSelection);
+  },[isVisible]);
 
   //--- Selecting
   
@@ -337,12 +384,60 @@ export default function Items() {
     setIsMenuOpen(false);
   }, [dispatch]);
 
-  const onRestoreSelection = () => {
-     setIsMenuOpen(false);
-  };
+  const  onArchiveSelection = useCallback(async() => {
+    setIsBusy(true);
+    let l_items = []
+    items.forEach(async (item) => {
+        if (isVisible(item) && editSelection[item.id]) {
+            await archiveItem({token, id: item.id, active: false});
+            l_items.push({...item, active:false});
+        }
+        else {
+            l_items.push(item);
+        }
+    });
+    setItems(l_items);
+    resetSelection(l_items);
+    computeVisibleStats(l_items);
+    setIsBusy(false);
+    setIsMenuOpen(false);
+  }, [token, items, editSelection, isVisible, computeVisibleStats, resetSelection]);
+
+  const onRestoreSelection = useCallback(async() => {
+    setIsBusy(true);
+    let l_items = []
+    items.forEach(async (item) => {
+        if (isVisible(item) && editSelection[item.id]) {
+            await archiveItem({token, id: item.id, active: true});
+            l_items.push({...item, active:true});
+        }
+        else {
+            l_items.push(item);
+        }
+    });
+    setItems(l_items);
+    resetSelection(l_items);
+    computeVisibleStats(l_items);
+    setIsBusy(false);
+    setIsMenuOpen(false);
+  }, [token, items, editSelection, isVisible, computeVisibleStats, resetSelection]);
 
   const onDeleteSelection = () => {
-     setIsMenuOpen(false);
+    setIsBusy(true);
+    let l_items = []
+    items.forEach(async (item) => {
+        if (isVisible(item) && editSelection[item.id]) {
+            await deleteItem({token, id: item.id});
+        }
+        else {
+            l_items.push(item);
+        }
+    });
+    setItems(l_items);
+    resetSelection(l_items);
+    computeVisibleStats(l_items);
+    setIsBusy(false);
+    setIsMenuOpen(false);
   };
 
   //--- Action Menu
@@ -368,7 +463,7 @@ export default function Items() {
 
         else {
             if (itemCategory === 'active') {
-                actions.push({ icon: <InventoryIcon sx={{color: "#a10666"}}/>, name: 'Archive', action: onClearAll, static: false });
+                actions.push({ icon: <InventoryIcon sx={{color: "#a10666"}}/>, name: 'Archive', action: onArchiveSelection, static: false });
             }
             else {
                 actions.push({
@@ -404,52 +499,15 @@ export default function Items() {
         setTimeout(() => {
             window.scrollTo(0, scrollPosition);
         });
-
-        // Compute visible items stats
-        let stats = {count: 0, cost: 0, tags: 0, locations: 0}
-        let l_tags = {}
-        let l_locations = {}
-        let l_editSelection = {}
-        l_items.forEach(item => {
-            if (isVisible(item)) {
-                stats.count += 1;
-                stats.cost += item.cost;
-                for(let i=0; i<item.tags.length; i++){
-                    let tagName = item.tags[i].name
-                    l_tags[tagName] = l_tags[tagName] || {count: 0}
-                    l_tags[tagName].count += 1
-                }
-                for(let i=0; i<item.locations.length; i++){
-                    let locationName = item.locations[i].name
-                    l_locations[locationName] = l_locations[locationName] || {count: 0};
-                    l_locations[locationName].count += 1
-                }
-                l_editSelection[item.id] = false;
-            }
-        });
-        setEditSelection(l_editSelection);
-        stats.tags = Object.entries(l_tags).map(entry => {
-            return {
-                name: entry[0],
-                count: entry[1].count
-            }
-        });
-        stats.tags.sort((a,b) => b.count-a.count);
-        stats.locations = Object.entries(l_locations).map(entry => {
-            return {
-                name: entry[0],
-                count: entry[1].count
-            }
-        });
-        stats.locations.sort((a,b) => b.count-a.count);
-        dispatch(setVisibleStats(stats));
+        resetSelection(l_items);
+        computeVisibleStats(l_items);
     };
 
     // Load item data
     setIsBusy(true);
     fetchData()
     .finally(()=> {setIsBusy(false)});
-  }, [token, scrollPosition, isVisible, dispatch]);
+  }, [token, scrollPosition, resetSelection, computeVisibleStats]);
 
   return(
     <React.Fragment>

@@ -32,34 +32,34 @@ import GlobalLoading from '../components/GlobalLoading';
 
 export default function ItemView() {
 
-  const IMAGE_HEIGHT = 240;
+    const IMAGE_HEIGHT = 240;
 
-  const [item, setItem] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [images, setImages] = useState([]);
-  const [open, setOpen] = React.useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
-  const [selectedImage, setSelectedImage] = React.useState('');
+    const [item, setItem] = useState({});
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [images, setImages] = useState([]);
+    const [open, setOpen] = React.useState(false);
+    const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
+    const [selectedImage, setSelectedImage] = React.useState('');
 
-  const token = useSelector((state) => state.global.token);
-  const itemCategory = useSelector((state) => state.global.itemCategory);
-  const searchFilter = useSelector((state) => state.global.searchFilter);
+    const token = useSelector((state) => state.global.token);
+    const itemCategory = useSelector((state) => state.global.itemCategory);
+    const searchFilter = useSelector((state) => state.global.searchFilter);
 
-  const { id } = useParams();
+    const { id } = useParams();
 
-  const navigation = useNavigation();
-  const navigate = useNavigate();
+    const navigation = useNavigation();
+    const navigate = useNavigate();
 
-  if (error) {
-    throw error;
-  };
+    if (error) {
+        throw error;
+    };
 
-  const onEdit = () => {
-    navigate('edit');
-  };
+    const onEdit = () => {
+        navigate('edit');
+    };
 
-  useEffect(() => {
+    useEffect(() => {
     async function fetchData() {
         const l_item  = await loadItem({token, id});
         setItem(l_item);
@@ -78,33 +78,33 @@ export default function ItemView() {
     .finally(()=> {setLoading(false)});
   }, [token, id]);
 
-   const onArchive = async() => {
-     await archiveItem({token, id, active: false});
-     navigate(-1);
-   };
+    const onArchive = async() => {
+        await archiveItem({token, id, active: false});
+        navigate(-1);
+    };
    
-   const onRestore = async() => {
-     await archiveItem({token, id, active: true});
-     navigate(-1);
-   };
+    const onRestore = async() => {
+        await archiveItem({token, id, active: true});
+        navigate(-1);
+    };
 
-   const onDelete = async() => {
-     await deleteItem({token, id});
-     navigate(-1);
-   };
+    const onDelete = async() => {
+        await deleteItem({token, id});
+        navigate(-1);
+    };
 
-   const onOpenZoom = (index) => async () => {
+    const onOpenZoom = (index) => async () => {
         setSelectedImageIndex(index);
         const image = await loadItemImage({token, id, image: item.photos.sources[index] + '.full'});
         setSelectedImage(image);
         setOpen(true);
-   };
+    };
 
-   const onCloseZoom = () => {
+    const onCloseZoom = () => {
         setOpen(false);
-   };
+    };
 
-   const onTag = (tagName) => () => {
+    const onTag = (tagName) => () => {
         let searchText = filter2search(searchFilter);
         if (searchText !== '') {
             searchText = `${searchText},`;
@@ -113,9 +113,9 @@ export default function ItemView() {
             pathname: '/',
             search: `?search=${searchText} t.${tagName}`,
         })
-   };
+    };
 
-   const onLocation = (locationName) => () => {
+    const onLocation = (locationName) => () => {
         let searchText = filter2search(searchFilter);
         if (searchText !== '') {
             searchText = `${searchText},`;
@@ -124,21 +124,21 @@ export default function ItemView() {
             pathname: '/',
             search: `?search=${searchText} l.${locationName}`,
         })
-   };
+    };
 
-   // Set-up scenario dependent speed dial actions
-   let actions = [
-      { icon: <ModeEditOutlineOutlinedIcon />, name: 'Edit', action: onEdit }
-   ];
-   if ((itemCategory === 'active') && (item.is_active)) {
-    actions.push({
+    // Set-up scenario dependent speed dial actions
+    let actions = [
+        { icon: <ModeEditOutlineOutlinedIcon />, name: 'Edit', action: onEdit }
+    ];
+    if ((itemCategory === 'active') && (item.is_active)) {
+        actions.push({
             icon: <InventoryIcon sx={{color: "#a10666"}}/>,
             name: 'Archive',
             action: onArchive
         });
-   }
-   else if ((itemCategory === 'archived') && (!item.is_active)) {
-    actions.push({
+    }
+    else if ((itemCategory === 'archived') && (!item.is_active)) {
+        actions.push({
             icon: <UnarchiveIcon sx={{color: "#1f750f"}}/>,
             name: 'Restore',
             action: onRestore
@@ -148,10 +148,10 @@ export default function ItemView() {
             name: 'Delete',
             action: onDelete
         });
-   };
+    };
 
-  return(
-  <React.Fragment>
+    return(
+    <React.Fragment>
 
     <GlobalLoading />
 
@@ -372,6 +372,6 @@ export default function ItemView() {
 
     </Stack>
 
-   </React.Fragment>
-  );
+    </React.Fragment>
+    );
 }
