@@ -9,6 +9,7 @@ import ItemsView from './views/Items';
 import ItemView from './views/ItemView';
 import ItemEdit from './views/ItemEdit';
 import StatsView from './views/StatsView';
+import AdminView from './views/AdminView';
 
 import {setToken} from './services/store';
 import {getToken} from './services/token';
@@ -51,6 +52,10 @@ function App() {
           {
             path: "/stats",
             element: <StatsView />,
+          },
+          {
+            path: "/admin",
+            element: <AdminView />,
           }
         ]
       }

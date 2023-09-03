@@ -608,13 +608,6 @@ export default function Items() {
             ))}
      </SpeedDial>
 
-    {/*------------------------------------------- Move ---------------*/}
-    <Dialog open={isMoveOpen} onClose={onMoveClose}>
-        <DialogTitle>Move selected items</DialogTitle>
-        <form onSubmit={onMoveExecute} disabled={isDisabled}>
-        </form>
-    </Dialog>
-
     {/*------------------------------------------- Tag ---------------*/}
     <Dialog open={isTagOpen} onClose={onTagClose} >
         <DialogTitle>Tag selected items</DialogTitle>

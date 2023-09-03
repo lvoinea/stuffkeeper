@@ -22,15 +22,16 @@ import Toolbar from '@mui/material/Toolbar';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import Typography from '@mui/material/Typography';
 
-import AccountCircle from '@mui/icons-material/AccountCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import InfoIcon from '@mui/icons-material/Info';
 import MenuIcon from '@mui/icons-material/Menu';
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import SearchIcon from '@mui/icons-material/Search';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 import SignIn from './SignIn';
 
@@ -59,6 +60,7 @@ export default function Root() {
   const matchItemView = useMatch('/items/:item');
   const matchItemEdit = useMatch('/items/:item/edit');
   const matchStats = useMatch('/stats');
+  const matchAdmin = useMatch('/admin');
 
   const computeFilters = useCallback((searchText) => () => {
     let filters = [];
@@ -163,6 +165,10 @@ export default function Root() {
     navigate('/stats');
   };
 
+  const onAdmin = () => {
+    navigate('/admin');
+  };
+
   const onInfoTag = (tagName) => () => {
     onInfoClose();
     let searchText = filter2search(searchFilter);
@@ -260,6 +266,13 @@ export default function Root() {
           { (matchStats) && (
             <Typography sx={{ display: 'inline' }} component="span" variant="h6">
                 Statistics
+            </Typography>
+          )}
+
+          {/* ------------------------------------------------ Admin --------- */}
+          { (matchAdmin) && (
+            <Typography sx={{ display: 'inline' }} component="span" variant="h6">
+                Admin
             </Typography>
           )}
 
@@ -419,6 +432,7 @@ export default function Root() {
 
           </List>
           <Divider />
+
           <List>
 
             <ListItem key='Stats' disablePadding>
@@ -432,12 +446,26 @@ export default function Root() {
 
           </List>
           <Divider />
+
+          <List>
+
+            <ListItem key='Admin' disablePadding>
+                <ListItemButton onClick={onAdmin}>
+                  <ListItemIcon>
+                    <SettingsIcon />
+                  </ListItemIcon>
+                  <ListItemText primary='Admin' />
+                </ListItemButton>
+            </ListItem>
+
+          </List>
+          <Divider />
           <List>
 
             <ListItem key='Sign out' disablePadding>
                 <ListItemButton onClick={onLogout}>
                   <ListItemIcon>
-                    <AccountCircle />
+                    <PowerSettingsNewIcon />
                   </ListItemIcon>
                   <ListItemText primary='Sign out' />
                 </ListItemButton>
