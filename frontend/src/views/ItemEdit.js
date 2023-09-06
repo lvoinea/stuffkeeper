@@ -136,7 +136,7 @@ export default function ItemEditView() {
         if (l_item.photos?.sources[0]) {
             let l_images=[];
             for(let i=0; i<l_item.photos.sources.length; i++) {
-                l_images.push(await  loadItemImage({token, id, image: l_item.photos.sources[i]}));
+                l_images.push(await  loadItemImage({id, image: l_item.photos.sources[i]}));
             }
             setImages(l_images);
         }
@@ -178,14 +178,14 @@ export default function ItemEditView() {
           for (let i=0; i<updatedItem.photos.sources.length; i++){
             const sourceName = updatedItem.photos.sources[i];
             if ((sourceName === SD_PHOTO) || (sourceName === HD_PHOTO)) {
-                const photoId = await saveItemImage({token, id, imageUrl: images[i], mode: sourceName});
+                const photoId = await saveItemImage({id, imageUrl: images[i], mode: sourceName});
                 updatedItem.photos.sources[i] = photoId.filename;
             }
           }
         }
 
         // Save the item itself
-        await saveItem({token, item: updatedItem, id});
+        await saveItem({item: updatedItem, id});
         // Update cached tags if new ones are added
         const newGlobalTags = updatedItem.tags?.filter(tag => !checkTag(tag.name, tags));
         if (newGlobalTags) {

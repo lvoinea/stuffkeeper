@@ -61,13 +61,13 @@ export default function ItemView() {
 
     useEffect(() => {
     async function fetchData() {
-        const l_item  = await loadItem({token, id});
+        const l_item  = await loadItem({id});
         setItem(l_item);
         // Load images
         if (l_item.photos?.sources[0]) {
             let l_images=[];
             for(let i=0; i<l_item.photos.sources.length; i++) {
-                l_images.push(await  loadItemImage({token, id, image: l_item.photos.sources[i]}));
+                l_images.push(await  loadItemImage({id, image: l_item.photos.sources[i]}));
             }
             setImages(l_images);
         }
@@ -79,23 +79,23 @@ export default function ItemView() {
   }, [token, id]);
 
     const onArchive = async() => {
-        await archiveItem({token, id, active: false});
+        await archiveItem({id, active: false});
         navigate(-1);
     };
    
     const onRestore = async() => {
-        await archiveItem({token, id, active: true});
+        await archiveItem({id, active: true});
         navigate(-1);
     };
 
     const onDelete = async() => {
-        await deleteItem({token, id});
+        await deleteItem({id});
         navigate(-1);
     };
 
     const onOpenZoom = (index) => async () => {
         setSelectedImageIndex(index);
-        const image = await loadItemImage({token, id, image: item.photos.sources[index] + '.full'});
+        const image = await loadItemImage({id, image: item.photos.sources[index] + '.full'});
         setSelectedImage(image);
         setOpen(true);
     };

@@ -34,14 +34,13 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RemoveDoneIcon from '@mui/icons-material/RemoveDone';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 
-import {getItems, addItem, saveItem, archiveItem, deleteItem, checkTag, checkLocation } from '../services/backend';
+import {addItem, saveItem, archiveItem, deleteItem, checkTag, checkLocation } from '../services/backend';
 import {setSelectedItem, setYItems, setVisibleStats, setIsMultiEdit,
  setTags as setGlobalTags, setLocations as setGlobalLocations} from '../services/store';
 
 
 export default function Items() {
 
-  const [items, setItems] = useState([]);
   const [isBusy, setIsBusy] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [editSelection, setEditSelection] = useState({});
@@ -53,7 +52,7 @@ export default function Items() {
   const [inputTag, setInputTag] = useState('');
   const [inputLocation, setInputLocation] = useState('');
 
-  const token = useSelector((state) => state.global.token);
+  const items = useSelector((state) => state.global.items);
   const globalTags = useSelector((state) => state.global.tags);
   const globalLocations = useSelector((state) => state.global.locations);
   const scrollPosition = useSelector((state) => state.global.itemsY);
@@ -205,11 +204,11 @@ export default function Items() {
         "sources": []
       }
     }
-    const addedItem = await addItem({token, item: newItem});
+    const addedItem = await addItem({item: newItem});
     dispatch(setSelectedItem({name: addedItem.name, id: addedItem.id}));
     dispatch(setYItems(window.pageYOffset));
     navigate(`/items/${addedItem.id}/edit`);
-  }, [dispatch, navigate, token]);
+  }, [dispatch, navigate]);
   
   //--- Tagging
 
@@ -279,7 +278,7 @@ export default function Items() {
                 };
 
                 // Save the item itself
-                await saveItem({token, item: updatedItem, id: item.id});
+                await saveItem({item: updatedItem, id: item.id});
                 // Update cached tags if new ones are added
                 const newGlobalTags = updatedItem.tags?.filter(tag => !checkTag(tag.name, globalTags));
                 if (newGlobalTags) {
@@ -292,7 +291,7 @@ export default function Items() {
     };
     setTags([]);
     setIsTagOpen(false);
-  }, [token, items, tags, getCommonTags, globalTags, editSelection, dispatch]);
+  }, [items, tags, getCommonTags, globalTags, editSelection, dispatch]);
 
   //--- Moving
 
@@ -362,7 +361,7 @@ export default function Items() {
                 };
 
                 // Save the item itself
-                await saveItem({token, item: updatedItem, id: item.id});
+                await saveItem({item: updatedItem, id: item.id});
                 // Update cached locations if new ones are added
                 const newGlobalLocations = updatedItem.locations?.filter(location => !checkLocation(location.name, globalLocations));
                 if (newGlobalLocations) {
@@ -375,7 +374,7 @@ export default function Items() {
     };
     setTags([]);
     setIsMoveOpen(false);
-  }, [token, items, locations, getCommonLocations, globalLocations,editSelection, dispatch]);
+  }, [items, locations, getCommonLocations, globalLocations,editSelection, dispatch]);
 
   //--- Other
 
@@ -389,56 +388,51 @@ export default function Items() {
     let l_items = []
     items.forEach(async (item) => {
         if (isVisible(item) && editSelection[item.id]) {
-            await archiveItem({token, id: item.id, active: false});
-            l_items.push({...item, active:false});
+            l_items.push(await archiveItem({id: item.id, active: false}));
         }
         else {
             l_items.push(item);
         }
     });
-    setItems(l_items);
     resetSelection(l_items);
     computeVisibleStats(l_items);
     setIsBusy(false);
     setIsMenuOpen(false);
-  }, [token, items, editSelection, isVisible, computeVisibleStats, resetSelection]);
+  }, [items, editSelection, isVisible, computeVisibleStats, resetSelection]);
 
   const onRestoreSelection = useCallback(async() => {
     setIsBusy(true);
     let l_items = []
     items.forEach(async (item) => {
         if (isVisible(item) && editSelection[item.id]) {
-            await archiveItem({token, id: item.id, active: true});
-            l_items.push({...item, active:true});
+            l_items.push(await archiveItem({id: item.id, active: true}));
         }
         else {
             l_items.push(item);
         }
     });
-    setItems(l_items);
     resetSelection(l_items);
     computeVisibleStats(l_items);
     setIsBusy(false);
     setIsMenuOpen(false);
-  }, [token, items, editSelection, isVisible, computeVisibleStats, resetSelection]);
+  }, [items, editSelection, isVisible, computeVisibleStats, resetSelection]);
 
-  const onDeleteSelection = () => {
+  const onDeleteSelection = useCallback(async() => {
     setIsBusy(true);
     let l_items = []
     items.forEach(async (item) => {
         if (isVisible(item) && editSelection[item.id]) {
-            await deleteItem({token, id: item.id});
+            await deleteItem({id: item.id});
         }
         else {
             l_items.push(item);
         }
     });
-    setItems(l_items);
     resetSelection(l_items);
     computeVisibleStats(l_items);
     setIsBusy(false);
     setIsMenuOpen(false);
-  };
+  }, [items, editSelection, isVisible, computeVisibleStats, resetSelection ]);
 
   //--- Action Menu
 
@@ -493,21 +487,12 @@ export default function Items() {
   //--- Set-up
 
   useEffect(() => {
-    async function fetchData() {
-        const l_items = await getItems();
-        setItems(l_items);
-        setTimeout(() => {
-            window.scrollTo(0, scrollPosition);
-        });
-        resetSelection(l_items);
-        computeVisibleStats(l_items);
-    };
-
-    // Load item data
-    setIsBusy(true);
-    fetchData()
-    .finally(()=> {setIsBusy(false)});
-  }, [token, scrollPosition, resetSelection, computeVisibleStats]);
+    setTimeout(() => {
+        window.scrollTo(0, scrollPosition);
+    });
+    resetSelection(items);
+    computeVisibleStats(items);
+  }, [items, scrollPosition, resetSelection, computeVisibleStats]);
 
   return(
     <React.Fragment>

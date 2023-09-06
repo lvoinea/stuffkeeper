@@ -37,26 +37,34 @@ export function loginUser({username, password, grant_type, scope, client_id, cli
 
 //------------------------------------------- Items
 
-var items = null;
-
 const updateCachedItem = (id) => (savedItem) => {
-    if (items) {
+
+    const state = store.getState();
+    let items = state.global.items.slice();
+
+    if (items.length > 0) {
         const existingIndex = items.findIndex(record => record.id === parseInt(id));
         if (existingIndex > -1) {
             items[existingIndex] = savedItem;
         } else {
             items.unshift(savedItem);
         }
+        store.dispatch(setItems(items));
     }
     return savedItem;
 }
 
 const removeCachedItem = (id) => {
-    if (items) {
+
+    const state = store.getState();
+    let items = state.global.items.slice();
+
+    if (items.length > 0) {
         const existingIndex = items.findIndex(record => record.id === parseInt(id));
         if (existingIndex > -1) {
             items.splice(existingIndex,1);
         }
+        store.dispatch(setItems(items));
     }
 }
 
@@ -64,9 +72,10 @@ export function getItems() {
 
    const state = store.getState();
    const token = state.global.token;
+   const items = state.global.items;
 
   if (token) {
-    return items? items: fetch(`${backendAddress}/users/me/items/`, {
+    return (items.length > 0) ? items: fetch(`${backendAddress}/users/me/items/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -91,8 +100,13 @@ export function getItems() {
   }
 }
 
-export function loadItem({token, id}) {
-    if (items) {
+export function loadItem({id}) {
+
+    const state = store.getState();
+    const token = state.global.token;
+    const items = state.global.items;
+
+    if (items.length > 0) {
         const existingIndex = items.findIndex(record => record.id === parseInt(id));
         if (existingIndex > -1) {
             return items[existingIndex];
@@ -115,7 +129,11 @@ export function loadItem({token, id}) {
      })
 }
 
-export function saveItem({token, item, id}) {
+export function saveItem({item, id}) {
+
+  const state = store.getState();
+  const token = state.global.token;
+
   return fetch(`${backendAddress}/users/me/items/${id}`, {
     method: 'POST',
     mode: 'cors',
@@ -134,7 +152,11 @@ export function saveItem({token, item, id}) {
   })
 }
 
-export function addItem({token, item}) {
+export function addItem({item}) {
+
+  const state = store.getState();
+  const token = state.global.token;
+
   return fetch(`${backendAddress}/users/me/items/`, {
     method: 'POST',
     mode: 'cors',
@@ -148,15 +170,18 @@ export function addItem({token, item}) {
     if(response.ok) {
         return response.json()
         .then(newItem => {
-            updateCachedItem(newItem.id)(newItem);
-            return newItem;
+            return updateCachedItem(newItem.id)(newItem);
         });
     }
     return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
   })
 }
 
-export function archiveItem({token, id, active}) {
+export function archiveItem({id, active}) {
+
+  const state = store.getState();
+  const token = state.global.token;
+
   return fetch(`${backendAddress}/users/me/items/${id}`, {
     method: 'POST',
     mode: 'cors',
@@ -175,7 +200,11 @@ export function archiveItem({token, id, active}) {
   })
 }
 
-export function deleteItem({token, id}) {
+export function deleteItem({id}) {
+
+  const state = store.getState();
+  const token = state.global.token;
+
   return fetch(`${backendAddress}/users/me/items/${id}`, {
     method: 'DELETE',
     mode: 'cors',
@@ -196,45 +225,53 @@ export function deleteItem({token, id}) {
 
 //------------------------------------------- Images
 
-export function loadItemImage({token, id, image}) {
-    return fetch(`${backendAddress}/users/me/items/${id}/image/${image}`, {
+export function loadItemImage({id, image}) {
+
+  const state = store.getState();
+  const token = state.global.token;
+
+  return fetch(`${backendAddress}/users/me/items/${id}/image/${image}`, {
         method: 'GET',
         mode: 'cors',
         headers: {
          'Content-Type': 'image/jpeg',
          'Authorization': `Bearer ${token}`
         }
-    })
-    .then(response => {
+  })
+  .then(response => {
         if(response.ok) {
             return response.blob()
         }
         return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
-    })
-    .then(blob => {
+  })
+  .then(blob => {
       return URL.createObjectURL(blob);
-    });
+  });
 }
 
-export async function saveItemImage({token, id, imageUrl, mode}) {
-    const imageBlob = await fetch(imageUrl).then(r => r.blob()).then(blobFile => new File([blobFile], "image", { type: "image/jpeg" }));
-    const formData = new FormData();
-    formData.append('file', imageBlob);
+export async function saveItemImage({id, imageUrl, mode}) {
 
-    return fetch(`${backendAddress}/users/me/items/${id}/image?mode=${mode}`, {
+  const state = store.getState();
+  const token = state.global.token;
+
+  const imageBlob = await fetch(imageUrl).then(r => r.blob()).then(blobFile => new File([blobFile], "image", { type: "image/jpeg" }));
+  const formData = new FormData();
+  formData.append('file', imageBlob);
+
+  return fetch(`${backendAddress}/users/me/items/${id}/image?mode=${mode}`, {
         method: 'POST',
         mode: 'cors',
         headers: {
          'Authorization': `Bearer ${token}`
         },
         body: formData
-    })
-    .then(response => {
+  })
+  .then(response => {
         if(response.ok) {
             return response.json()
         }
         return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
-    });
+  });
 }
 
 //------------------------------------------- Tags
@@ -281,9 +318,7 @@ export async function renameTag(srcTagName, dstTagName) {
     //TODO: Call api to rename tag
 
     // Reload tags
-    const state = store.getState();
-    const token = state.global.token;
-    await getTags({token});
+    await getTags();
 
     //TODO: Update the loaded items by changing their tags
     // One could choose to simply reload the items but that is expensive
