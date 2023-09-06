@@ -35,8 +35,8 @@ import SettingsIcon from '@mui/icons-material/Settings';
 
 import SignIn from './SignIn';
 
-import {getTags, getLocations} from '../services/backend';
-import {setTags, setLocations, setItemCategory, setSearchFilter, setIsMultiEdit} from '../services/store';
+import {getItems, getTags, getLocations} from '../services/backend';
+import {setItemCategory, setSearchFilter, setIsMultiEdit} from '../services/store';
 import {filter2search} from '../services/utils';
 
 const MAX_RELATED = 5
@@ -88,14 +88,13 @@ export default function Root() {
 
   useEffect(()=>{
     async function fetchData() {
+        // Items
+        await getItems();
         // Tags
-        let tags = await getTags({token});
-        tags = tags.map((tag) => { return { name: tag.name}});
-        dispatch(setTags(tags));
+        await getTags();
         // Locations
-        let locations = await getLocations({token});
-        locations = locations.map((location) => { return { name: location.name}});
-        dispatch(setLocations(locations));
+        await getLocations();
+
         const searchText = searchParams.get('search');
         if (searchText) {
             setSearchStr(searchText);

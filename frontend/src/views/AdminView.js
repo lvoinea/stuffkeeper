@@ -18,6 +18,8 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 import GlobalLoading from '../components/GlobalLoading';
 
+import {renameTag, renameLocation} from '../services/backend';
+
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
 const MenuProps = {
@@ -47,11 +49,11 @@ export default function AdminView() {
         setIsTagRenameOpen(true);
     };
 
-    const onTagRenameExecute = (event) => {
+    const onTagRenameExecute = async (event) => {
         event.preventDefault();
         setIsDisabled(true);
 
-        console.log(srcTagName, dstTagName);
+        await renameTag(srcTagName, dstTagName);
 
         setIsDisabled(false);
         onTagRenameClose();
@@ -69,11 +71,11 @@ export default function AdminView() {
         setIsLocationRenameOpen(true);
     };
 
-    const onLocationRenameExecute = (event) => {
+    const onLocationRenameExecute = async (event) => {
         event.preventDefault();
         setIsDisabled(true);
 
-        console.log(srcLocationName, dstLocationName);
+        await renameLocation(srcLocationName, dstLocationName);
 
         setIsDisabled(false);
         onLocationRenameClose();
@@ -104,7 +106,7 @@ return(
     </Paper>
 
     <Dialog open={isTagRenameOpen} onClose={onTagRenameClose} fullWidth>
-        <DialogTitle>Tag selected items</DialogTitle>
+        <DialogTitle>Rename a tag</DialogTitle>
         <form onSubmit={onTagRenameExecute} disabled={isDisabled}>
 
             <Stack direction="column" justifyContent="center" alignItems="center" spacing={2} sx={{margin: 1.5, width: '90%'}}>
@@ -154,7 +156,7 @@ return(
     </Paper>
 
     <Dialog open={isLocationRenameOpen} onClose={onLocationRenameClose} fullWidth>
-        <DialogTitle>Location selected items</DialogTitle>
+        <DialogTitle>Rename a location</DialogTitle>
         <form onSubmit={onLocationRenameExecute} disabled={isDisabled}>
 
             <Stack direction="column" justifyContent="center" alignItems="center" spacing={2} sx={{margin: 1.5, width: '90%'}}>

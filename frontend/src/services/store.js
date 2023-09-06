@@ -6,6 +6,7 @@ const initialState = {
   token: null,
   itemsY: 0,
   itemCategory: 'active',
+  items: [],
   tags: [],
   locations: [],
   searchFilter: [],
@@ -28,6 +29,9 @@ export const globalSlice = createSlice({
     },
     setItemCategory: (state, action) => {
       state.itemCategory = action.payload;
+    },
+    setItems: (state, action) => {
+      state.items = action.payload;
     },
     setTags: (state, action) => {
       state.tags = action.payload;
@@ -52,6 +56,7 @@ export const {
     setToken,
     setYItems,
     setItemCategory,
+    setItems,
     setTags,
     setLocations,
     setSearchFilter,

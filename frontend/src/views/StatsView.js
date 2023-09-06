@@ -3,8 +3,6 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 
 import { alpha } from "@mui/material";
-import Backdrop from '@mui/material/Backdrop';
-import CircularProgress from '@mui/material/CircularProgress';
 import Grid from '@mui/material/Grid';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
@@ -20,8 +18,6 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { Chart } from "react-google-charts";
 
 import GlobalLoading from '../components/GlobalLoading';
-
-import {getItems } from '../services/backend';
 
 const TOP_ENTRIES = 10;
 const BAR_LENGTH = 90;
@@ -57,7 +53,6 @@ const makeCleanState = () => {
 
 export default function StatsView() {
 
-  const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState(makeCleanState());
 
   const [tagMetric, setTagMetric] = React.useState('cost');
@@ -70,117 +65,112 @@ export default function StatsView() {
   const [locationNumber, setLocationNumber] = React.useState(0);
   const [locationPieChart, setLocationPieChart] = React.useState([['Location','Metric']]);
 
-  const token = useSelector((state) => state.global.token);
+  const items = useSelector((state) => state.global.items);
   const tags = useSelector((state) => state.global.tags);
   const locations = useSelector((state) => state.global.locations);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchData() {
-        const l_items = await getItems({token});
 
-        let l_stats = makeCleanState();
+    let l_stats = makeCleanState();
 
-        // Basic metrics
-        for(let i=0; i<l_items.length; i++){
-            if (l_items[i].is_active) {
-                l_stats.nrCurrentItems++;
-                l_stats.costCurrentItems += l_items[i].cost;
-            }
-            else {
-                l_stats.nrArchivedItems++;
-                l_stats.costArchivedItems += l_items[i].cost;
-            }
-        }
-
-        // Top tags
-        let l_tags = {};
-        for(let i=0; i<l_items.length; i++){
-            for(let j=0; j<l_items[i].tags.length; j++){
-                let tagName = l_items[i].tags[j].name
-                l_tags[tagName] = l_tags[tagName] || {count: 0, cost: 0}
-                l_tags[tagName].count += 1
-                l_tags[tagName].cost += l_items[i].cost
-            }
-        }
-        for (const [key, value] of Object.entries(l_tags)) {
-            l_stats.topTags.push({
-                name: key,
-                count: value.count,
-                cost: value.cost,
-            })
-        }
-
-        // Top locations
-        let l_locations = {};
-        for(let i=0; i<l_items.length; i++){
-            for(let j=0; j<l_items[i].locations.length; j++){
-                let locationName = l_items[i].locations[j].name
-                l_locations[locationName] = l_locations[locationName] || {count: 0, cost: 0};
-                l_locations[locationName].count += 1
-                l_locations[locationName].cost += l_items[i].cost
-            }
-        }
-        for (const [key, value] of Object.entries(l_locations)) {
-            l_stats.topLocations.push({
-                name: key,
-                count: value.count,
-                cost: value.cost,
-            })
-        }
-
-        // Sort the tags on the selected metric and find the largest value
-        // to be used as reference for the bar chart.
-        if (tagMetric === 'cost') {
-            l_stats.topTags.sort((a,b) => b.cost-a.cost);
-            setTagPieChart([['Tag','Metric']].concat(l_stats.topTags.map(t => [t.name, t.cost])));
+    // Basic metrics
+    for(let i=0; i<items.length; i++){
+        if (items[i].is_active) {
+            l_stats.nrCurrentItems++;
+            l_stats.costCurrentItems += items[i].cost;
         }
         else {
-            l_stats.topTags.sort((a,b) => b.count-a.count);
-            setTagPieChart([['Tag','Metric']].concat(l_stats.topTags.map(t => [t.name, t.count])));
+            l_stats.nrArchivedItems++;
+            l_stats.costArchivedItems += items[i].cost;
         }
+    }
 
-        if (l_stats.topTags.length > 0) {
-            l_stats.maxTagMetric = l_stats.topTags[0][tagMetric]
+    // Top tags
+    let l_tags = {};
+    for(let i=0; i<items.length; i++){
+        for(let j=0; j<items[i].tags.length; j++){
+            let tagName = items[i].tags[j].name
+            l_tags[tagName] = l_tags[tagName] || {count: 0, cost: 0}
+            l_tags[tagName].count += 1
+            l_tags[tagName].cost += items[i].cost
         }
+    }
+    for (const [key, value] of Object.entries(l_tags)) {
+        l_stats.topTags.push({
+            name: key,
+            count: value.count,
+            cost: value.cost,
+        })
+    }
 
-        // Sort the locations on the selected metric and find the largest value
-        // to be used as reference for the bar chart.
-        if (locationMetric === 'cost') {
-            l_stats.topLocations.sort((a,b) => b.cost-a.cost);
-            setLocationPieChart([['Location','Metric']].concat(l_stats.topLocations.map(t => [t.name, t.cost])));
+    // Top locations
+    let l_locations = {};
+    for(let i=0; i<items.length; i++){
+        for(let j=0; j<items[i].locations.length; j++){
+            let locationName = items[i].locations[j].name
+            l_locations[locationName] = l_locations[locationName] || {count: 0, cost: 0};
+            l_locations[locationName].count += 1
+            l_locations[locationName].cost += items[i].cost
         }
-        else {
-            l_stats.topLocations.sort((a,b) => b.count-a.count);
-            setLocationPieChart([['Location','Metric']].concat(l_stats.topLocations.map(t => [t.name, t.count])));
-        }
+    }
+    for (const [key, value] of Object.entries(l_locations)) {
+        l_stats.topLocations.push({
+            name: key,
+            count: value.count,
+            cost: value.cost,
+        })
+    }
 
-        if (l_stats.topLocations.length > 0) {
-            l_stats.maxLocationMetric = l_stats.topLocations[0][locationMetric]
-        }
+    // Sort the tags on the selected metric and find the largest value
+    // to be used as reference for the bar chart.
+    if (tagMetric === 'cost') {
+        l_stats.topTags.sort((a,b) => b.cost-a.cost);
+        setTagPieChart([['Tag','Metric']].concat(l_stats.topTags.map(t => [t.name, t.cost])));
+    }
+    else {
+        l_stats.topTags.sort((a,b) => b.count-a.count);
+        setTagPieChart([['Tag','Metric']].concat(l_stats.topTags.map(t => [t.name, t.count])));
+    }
 
-        // Set the number of entries in the reports
-        if (tagFilter === 'top 10'){
-            setTagNumber(TOP_ENTRIES);
-        }
-        else {
-            setTagNumber(l_stats.topTags.length);
-        }
+    if (l_stats.topTags.length > 0) {
+        l_stats.maxTagMetric = l_stats.topTags[0][tagMetric]
+    }
 
-        if (locationFilter === 'top 10'){
-            setLocationNumber(TOP_ENTRIES);
-        }
-        else {
-            setLocationNumber(l_stats.topLocations.length);
-        }
+    // Sort the locations on the selected metric and find the largest value
+    // to be used as reference for the bar chart.
+    if (locationMetric === 'cost') {
+        l_stats.topLocations.sort((a,b) => b.cost-a.cost);
+        setLocationPieChart([['Location','Metric']].concat(l_stats.topLocations.map(t => [t.name, t.cost])));
+    }
+    else {
+        l_stats.topLocations.sort((a,b) => b.count-a.count);
+        setLocationPieChart([['Location','Metric']].concat(l_stats.topLocations.map(t => [t.name, t.count])));
+    }
 
-        setStats(l_stats);
-    };
-    setLoading(true);
-    fetchData()
-    .finally(()=> {setLoading(false)});
-  }, [token, tags, locations, tagMetric, tagFilter, locationMetric, locationFilter]);
+    if (l_stats.topLocations.length > 0) {
+        l_stats.maxLocationMetric = l_stats.topLocations[0][locationMetric]
+    }
+
+    // Set the number of entries in the reports
+    if (tagFilter === 'top 10'){
+        setTagNumber(TOP_ENTRIES);
+    }
+    else {
+        setTagNumber(l_stats.topTags.length);
+    }
+
+    if (locationFilter === 'top 10'){
+        setLocationNumber(TOP_ENTRIES);
+    }
+    else {
+        setLocationNumber(l_stats.topLocations.length);
+    }
+
+    setStats(l_stats);
+
+  }, [items, tags, locations, tagMetric, tagFilter, locationMetric, locationFilter]);
 
   const onTag = (tagName) => () => {
     navigate({
@@ -212,13 +202,6 @@ export default function StatsView() {
     <React.Fragment>
 
     <GlobalLoading />
-
-   {/*------------------------------------------ Loading ------- */}
-    <Backdrop
-        sx={{ color: '#2c5585', backgroundColor: 'rgba(0, 0, 0, 0.1);', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={loading}>
-        <CircularProgress color="inherit" thickness={8} />
-    </Backdrop>
 
     {/*--------------------------- Active Items ------------- */}
     <Paper elevation={4} sx={{ padding: '10px', margin: '5px'}}>

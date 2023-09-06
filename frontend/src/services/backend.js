@@ -1,3 +1,4 @@
+import {store, setItems, setTags, setLocations} from './store';
 
 // Production deployment
 //const backendAddress = 'https://stuffkeeper.w3app.nl/api';
@@ -59,7 +60,11 @@ const removeCachedItem = (id) => {
     }
 }
 
-export function getItems({token}) {
+export function getItems() {
+
+   const state = store.getState();
+   const token = state.global.token;
+
   if (token) {
     return items? items: fetch(`${backendAddress}/users/me/items/`, {
         method: 'GET',
@@ -73,14 +78,15 @@ export function getItems({token}) {
         if(response.ok) {
             return response.json()
             .then( serverItems => {
-                items = serverItems;
-                return items;
+                store.dispatch(setItems(serverItems));
+                return serverItems;
             });
         }
         return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
       })
   }
   else {
+    store.dispatch(setItems([]));
     return [];
   }
 }
@@ -231,9 +237,13 @@ export async function saveItemImage({token, id, imageUrl, mode}) {
     });
 }
 
-//------------------------------------------- Token
+//------------------------------------------- Tags
 
-export function getTags({token}) {
+export function getTags() {
+
+  const state = store.getState();
+  const token = state.global.token;
+
   if (token) {
     return fetch(`${backendAddress}/users/me/tags/`, {
         method: 'GET',
@@ -245,7 +255,11 @@ export function getTags({token}) {
       })
       .then(response => {
         if(response.ok) {
-            return response.json()
+            return response.json().then(responseTags => {
+                let tags = responseTags.map((tag) => { return { name: tag.name}});
+                store.dispatch(setTags(tags));
+                return tags;
+            });
         }
         return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
       })
@@ -260,9 +274,28 @@ export function checkTag(name, existingTags ) {
     return found
 }
 
+export async function renameTag(srcTagName, dstTagName) {
+
+    console.log(srcTagName, dstTagName);
+
+    //TODO: Call api to rename tag
+
+    // Reload tags
+    const state = store.getState();
+    const token = state.global.token;
+    await getTags({token});
+
+    //TODO: Update the loaded items by changing their tags
+    // One could choose to simply reload the items but that is expensive
+}
+
 //------------------------------------------- Locations
 
-export function getLocations({token}) {
+export function getLocations() {
+
+  const state = store.getState();
+  const token = state.global.token;
+
   if (token) {
     return fetch(`${backendAddress}/users/me/locations/`, {
         method: 'GET',
@@ -274,7 +307,11 @@ export function getLocations({token}) {
       })
       .then(response => {
         if(response.ok) {
-            return response.json()
+            return response.json().then(responseLocations => {
+                let locations = responseLocations.map((location) => { return { name: location.name}});
+                store.dispatch(setLocations(locations));
+                return locations;
+            });
         }
         return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
       })
@@ -287,4 +324,10 @@ export function getLocations({token}) {
 export function checkLocation(name, existingLocations ) {
     const found = existingLocations.find(location => location.name === name );
     return found
+}
+
+export async function renameLocation(srcLocationName, dstLocationName) {
+
+    // TODO
+    console.log(srcLocationName, dstLocationName);
 }

@@ -494,7 +494,7 @@ export default function Items() {
 
   useEffect(() => {
     async function fetchData() {
-        const l_items = await getItems({token});
+        const l_items = await getItems();
         setItems(l_items);
         setTimeout(() => {
             window.scrollTo(0, scrollPosition);
@@ -653,7 +653,7 @@ export default function Items() {
                 }
 
             />
-            <Button variant="outlined" type="submit">Tag</Button>
+            <Button variant="text" type="submit">Tag</Button>
             </Stack>
         </form>
     </Dialog>
@@ -703,7 +703,7 @@ export default function Items() {
                 }
 
             />
-            <Button variant="outlined" type="submit">Move</Button>
+            <Button variant="text" type="submit">Move</Button>
             </Stack>
         </form>
       </Dialog>
