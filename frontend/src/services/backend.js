@@ -289,17 +289,16 @@ export function getTags() {
          'Content-Type': 'application/json',
          'Authorization': `Bearer ${token}`
         }
-      })
-      .then(response => {
+    })
+    .then(response => {
         if(response.ok) {
             return response.json().then(responseTags => {
-                let tags = responseTags.map((tag) => { return { name: tag.name}});
-                store.dispatch(setTags(tags));
-                return tags;
+                store.dispatch(setTags(responseTags));
+                return responseTags;
             });
         }
         return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
-      })
+    });
   }
   else {
     return [];
@@ -313,15 +312,48 @@ export function checkTag(name, existingTags ) {
 
 export async function renameTag(srcTagName, dstTagName) {
 
-    console.log(srcTagName, dstTagName);
+    const state = store.getState();
+    const token = state.global.token;
+    const items = state.global.items;
 
-    //TODO: Call api to rename tag
+    if (token) {
 
-    // Reload tags
-    await getTags();
+        // Reload tags to make sure the tag ID is present (e.g., after adding a tag via an item)
+        const tags = await getTags();
+        const srcTag = tags.filter(tag => tag.name === srcTagName)[0];
 
-    //TODO: Update the loaded items by changing their tags
-    // One could choose to simply reload the items but that is expensive
+        // Call api to rename tag
+        return fetch(`${backendAddress}/users/me/tags/${srcTag.id}`, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+             'Content-Type': 'application/json',
+             'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({name: dstTagName})
+        })
+        .then(response => {
+            if(response.ok) {
+
+                // Update locally cached tags
+                store.dispatch(setTags(tags.map(tag => (tag.name === srcTagName) ? { ...tag, name: dstTagName} : tag)));
+
+                // Update the cached items by changing their tags.
+                // NOTE: One could choose to simply reload the items but that is expensive.
+                let l_items = items.map(item => {
+                    let l_tags = item.tags.map(tag => {
+                        return (tag.name === srcTagName) ? { name: dstTagName} : tag;
+                    });
+                    return {...item, tags: l_tags};
+                });
+                store.dispatch(setItems(l_items));
+
+                // The updated tag
+                return response.json();
+            }
+            return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
+        });
+    };
 }
 
 //------------------------------------------- Locations
@@ -343,9 +375,8 @@ export function getLocations() {
       .then(response => {
         if(response.ok) {
             return response.json().then(responseLocations => {
-                let locations = responseLocations.map((location) => { return { name: location.name}});
-                store.dispatch(setLocations(locations));
-                return locations;
+                store.dispatch(setLocations(responseLocations));
+                return responseLocations;
             });
         }
         return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
@@ -363,6 +394,46 @@ export function checkLocation(name, existingLocations ) {
 
 export async function renameLocation(srcLocationName, dstLocationName) {
 
-    // TODO
-    console.log(srcLocationName, dstLocationName);
+    const state = store.getState();
+    const token = state.global.token;
+    const items = state.global.items;
+
+    if (token) {
+
+        // Reload locations to make sure the location ID is present (e.g., after adding a location via an item)
+        const locations = await getLocations();
+        const srcLocation = locations.filter(location => location.name === srcLocationName)[0];
+
+        // Call api to rename location
+        return fetch(`${backendAddress}/users/me/locations/${srcLocation.id}`, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+             'Content-Type': 'application/json',
+             'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({name: dstLocationName})
+        })
+        .then(response => {
+            if(response.ok) {
+
+                // Update locally cached locations
+                store.dispatch(setLocations(locations.map(location => (location.name === srcLocationName) ? { ...location, name: dstLocationName} : location)));
+
+                // Update the cached items by changing their locations.
+                // NOTE: One could choose to simply reload the items but that is expensive.
+                let l_items = items.map(item => {
+                    let l_locations = item.locations.map(location => {
+                        return (location.name === srcLocationName) ? { name: dstLocationName} : location;
+                    });
+                    return {...item, locations: l_locations};
+                });
+                store.dispatch(setItems(l_items));
+
+                // The updated location
+                return response.json();
+            }
+            return response.text().then(text => {throw new ApplicationException({code: response.status, message:text})})
+        });
+    };
 }

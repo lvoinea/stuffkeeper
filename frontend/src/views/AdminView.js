@@ -33,7 +33,6 @@ const MenuProps = {
 
 export default function AdminView() {
 
-    const [isDisabled, setIsDisabled] = useState(false);
     const [isTagRenameOpen, setIsTagRenameOpen] = useState(false);
     const [isLocationRenameOpen, setIsLocationRenameOpen] = useState(false);
     const [srcTagName, setSrcTagName] = useState('');
@@ -51,12 +50,9 @@ export default function AdminView() {
 
     const onTagRenameExecute = async (event) => {
         event.preventDefault();
-        setIsDisabled(true);
 
-        await renameTag(srcTagName, dstTagName);
-
-        setIsDisabled(false);
         onTagRenameClose();
+        await renameTag(srcTagName, dstTagName);
     };
 
     const onTagRenameClose = () => {
@@ -73,12 +69,9 @@ export default function AdminView() {
 
     const onLocationRenameExecute = async (event) => {
         event.preventDefault();
-        setIsDisabled(true);
 
-        await renameLocation(srcLocationName, dstLocationName);
-
-        setIsDisabled(false);
         onLocationRenameClose();
+        await renameLocation(srcLocationName, dstLocationName);
     };
 
     const onLocationRenameClose = () => {
@@ -107,7 +100,7 @@ return(
 
     <Dialog open={isTagRenameOpen} onClose={onTagRenameClose} fullWidth>
         <DialogTitle>Rename a tag</DialogTitle>
-        <form onSubmit={onTagRenameExecute} disabled={isDisabled}>
+        <form onSubmit={onTagRenameExecute}>
 
             <Stack direction="column" justifyContent="center" alignItems="center" spacing={2} sx={{margin: 1.5, width: '90%'}}>
             <FormControl variant="outlined" sx={{ width: '100%' }}>
@@ -157,7 +150,7 @@ return(
 
     <Dialog open={isLocationRenameOpen} onClose={onLocationRenameClose} fullWidth>
         <DialogTitle>Rename a location</DialogTitle>
-        <form onSubmit={onLocationRenameExecute} disabled={isDisabled}>
+        <form onSubmit={onLocationRenameExecute}>
 
             <Stack direction="column" justifyContent="center" alignItems="center" spacing={2} sx={{margin: 1.5, width: '90%'}}>
             <FormControl variant="outlined" sx={{ width: '100%' }}>
