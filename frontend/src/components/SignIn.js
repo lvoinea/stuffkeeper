@@ -62,7 +62,7 @@ export default function SignIn() {
           }}
         >
           <img src="/logo192.png" alt="StuffKeeper Logo"/>
-          <div>v1.3</div>
+          <div>v1.4</div>
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
               margin="normal"

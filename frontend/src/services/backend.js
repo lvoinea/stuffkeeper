@@ -1,4 +1,5 @@
 import {store, setItems, setTags, setLocations} from './store';
+import {sleep} from './utils';
 
 // Production deployment
 //const backendAddress = 'https://stuffkeeper.w3app.nl/api';
@@ -68,13 +69,15 @@ const removeCachedItem = (id) => {
     }
 }
 
-export function getItems() {
+export async function getItems() {
 
    const state = store.getState();
    const token = state.global.token;
    const items = state.global.items;
 
   if (token) {
+    //await sleep(5000);
+
     return (items.length > 0) ? items: fetch(`${backendAddress}/users/me/items/`, {
         method: 'GET',
         mode: 'cors',

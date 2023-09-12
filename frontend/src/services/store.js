@@ -11,7 +11,8 @@ const initialState = {
   locations: [],
   searchFilter: [],
   visibleStats: {count: 0, cost: 0, tags: [], locations: []},
-  isMultiEdit: false
+  isMultiEdit: false,
+  isLoading: false,
 }
 
 export const globalSlice = createSlice({
@@ -47,6 +48,9 @@ export const globalSlice = createSlice({
     },
     setIsMultiEdit: (state, action) => {
       state.isMultiEdit = action.payload;
+    },
+    setIsLoading: (state, action) => {
+      state.isLoading = action.payload;
     }
   },
 })
@@ -61,7 +65,8 @@ export const {
     setLocations,
     setSearchFilter,
     setVisibleStats,
-    setIsMultiEdit} = globalSlice.actions
+    setIsMultiEdit,
+    setIsLoading} = globalSlice.actions
 
 export const store = configureStore({
   reducer: {

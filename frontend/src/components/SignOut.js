@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { Link } from "react-router-dom";
 
-import {setToken} from '../services/store';
+import {setItems, setToken} from '../services/store';
 import {deleteToken} from '../services/token';
 
 import Avatar from '@mui/material/Avatar';
@@ -18,6 +18,7 @@ export default function SignOut() {
   useEffect(() => {
     deleteToken();
     dispatch(setToken(null));
+    dispatch(setItems([]));
   })
 
   return (

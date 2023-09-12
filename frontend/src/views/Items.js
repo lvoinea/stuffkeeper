@@ -34,6 +34,8 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RemoveDoneIcon from '@mui/icons-material/RemoveDone';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 
+import GlobalLoading from '../components/GlobalLoading';
+
 import {addItem, saveItem, archiveItem, deleteItem, checkTag, checkLocation } from '../services/backend';
 import {setSelectedItem, setYItems, setVisibleStats, setIsMultiEdit,
  setTags as setGlobalTags, setLocations as setGlobalLocations} from '../services/store';
@@ -497,9 +499,11 @@ export default function Items() {
   return(
     <React.Fragment>
 
+     <GlobalLoading />
+
      {/*------------------------------------------ Loading ------- */}
      <Backdrop
-        sx={{ color: '#2c5585', backgroundColor: 'rgba(0, 0, 0, 0.1);', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        sx={{ color: '#1d6fcf', backgroundColor: 'rgba(0, 0, 0, 0.1);', zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={isBusy}
      >
         <CircularProgress color="inherit" thickness={8} />

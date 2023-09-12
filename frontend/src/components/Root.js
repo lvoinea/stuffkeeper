@@ -36,7 +36,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import SignIn from './SignIn';
 
 import {getItems, getTags, getLocations} from '../services/backend';
-import {setItemCategory, setSearchFilter, setIsMultiEdit} from '../services/store';
+import {setItemCategory, setSearchFilter, setIsMultiEdit, setIsLoading} from '../services/store';
 import {filter2search} from '../services/utils';
 
 const MAX_RELATED = 5
@@ -88,6 +88,8 @@ export default function Root() {
 
   useEffect(()=>{
     async function fetchData() {
+        dispatch(setIsLoading(true));
+
         // Items
         await getItems();
         // Tags
@@ -100,6 +102,8 @@ export default function Root() {
             setSearchStr(searchText);
             computeFilters(searchText)();
         }
+
+        dispatch(setIsLoading(false));
     };
     fetchData();
   },[token, dispatch, searchParams, computeFilters]);
